@@ -1,0 +1,46 @@
+const char *response = R"(
+{
+  "coord": {
+    "lon": 139.93,
+    "lat": 36.55
+  },
+  "weather": [
+    {
+      "id": 800,
+      "main": "Clear",
+      "description": "晴天",
+      "icon": "01d"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 14.6,
+    "feels_like": 12.48,
+    "temp_min": 14.6,
+    "temp_max": 14.6,
+    "pressure": 1021,
+    "humidity": 14,
+    "sea_level": 1021,
+    "grnd_level": 1010
+  },
+  "visibility": 10000,
+  "wind": {
+    "speed": 0.92,
+    "deg": 63,
+    "gust": 3.58
+  },
+  "clouds": {
+    "all": 0
+  },
+  "dt": 1774074927,
+  "sys": {
+    "country": "JP",
+    "sunrise": 1774039399,
+    "sunset": 1774083114
+  },
+  "timezone": 32400,
+  "id": 1863219,
+  "name": "Hanawadamachi",
+  "cod": 200
+}
+)";
