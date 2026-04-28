@@ -18,7 +18,6 @@ static const char *ntpServers[] = {
 
 static const char *week [] = DAYS_OF_THE_WEEK;
 static const char *month[] = MONTHS_OF_THE_YEAR;
-static int32_t timezoneOffset = TIMEZONE_OFFSET * 3600;
 
 #if defined(ARDUINO_UNOR4_WIFI)
 
@@ -26,71 +25,15 @@ static int32_t timezoneOffset = TIMEZONE_OFFSET * 3600;
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 
+#define NTP_UPDATE_INTERVAL (3 * 60 * 1000)
+static int32_t timezoneOffset = TIMEZONE_OFFSET;
+
 // A single instance to let us send and receive packets over UDP
 static WiFiUDP Udp;
-
-//-------------------------------------------------------------------------------------
-// Synchronize the RTC with the NTP server
-//-------------------------------------------------------------------------------------
-void rtcUpdate(int32_t offset) {
-  Serial.println("Connecting to NTP server...");
-
-  timezoneOffset = offset;
-
-  // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
-  // https://github.com/arduino-libraries/NTPClient
-  // https://github.com/arduino/ArduinoCore-renesas/tree/main/libraries/RTC/examples/RTC_NTPSync
-  for (int i = 0; i < sizeof(ntpServers) / sizeof(ntpServers[0]); i++) {
-    Serial.println(ntpServers[i]);
-
-    // By default 'pool.ntp.org' is used with 60 seconds update interval and no offset.
-    // You can specify the time server pool and the offset, (in seconds)
-    // additionally you can specify the update interval (in milliseconds).
-    // e.g. NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-    NTPClient timeClient(Udp, ntpServers[i], timezoneOffset, 120000);
- 
-    timeClient.begin();
-    if (timeClient.update()) {
-      // Get the current date and time from an NTP server and convert it
-      // to 'UTC+X' by passing 'X' as the time zone offset in hours.
-      // ToDo: Adjusting Daylight Saving Time (https://docs.arduino.cc/libraries/timezone/)
-      auto unixTime = timeClient.getEpochTime();
-      RTCTime timeToSet = RTCTime(unixTime);
-      RTC.setTime(timeToSet);
-
-      // Retrieve the date and time from the RTC and print them
-      RTCTime currentTime;
-      RTC.getTime(currentTime);
-      Serial.println("The RTC was just set to: " + currentTime.toString());
-      break;
-    }
-  }
-}
 
 #else // ESP32
 
 #include <esp_sntp.h>
-
-//-------------------------------------------------------------------------------------
-// Notification callback function on synchronizing NTP server
-//
-// struct timeval {
-//   time_t      tv_sec;  /* seconds */
-//   suseconds_t tv_usec; /* microseconds */
-// };
-//-------------------------------------------------------------------------------------
-void rtcUpdate(struct timeval *tv) {
-  struct tm timeInfo;
-
-  if (tv) {
-    localtime_r(&tv->tv_sec, &timeInfo);
-  } else {
-    getLocalTime(&timeInfo);
-  }
-
-  Serial.print("The RTC was just set to: ");
-  Serial.println(&timeInfo, "%Y-%m-%d %H:%M:%S");
-}
 
 #endif
 
@@ -123,6 +66,77 @@ void rtcInit(void) {
   struct tm timeInfo;
   getLocalTime(&timeInfo);
 
+#endif
+}
+
+#if defined(ARDUINO_UNOR4_WIFI)
+//-------------------------------------------------------------------------------------
+// Synchronize the RTC with the NTP server
+//-------------------------------------------------------------------------------------
+void rtcUpdate(void) {
+  static uint32_t lastUpdate;
+  if (lastUpdate == 0 || millis() - lastUpdate >= NTP_UPDATE_INTERVAL) {
+    Serial.println("Connecting to NTP server...");
+
+    // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
+    // https://github.com/arduino-libraries/NTPClient
+    // https://github.com/arduino/ArduinoCore-renesas/tree/main/libraries/RTC/examples/RTC_NTPSync
+    for (int i = 0; i < sizeof(ntpServers) / sizeof(ntpServers[0]); i++) {
+      Serial.println(ntpServers[i]);
+
+      // By default 'pool.ntp.org' is used with 60 seconds update interval and no offset.
+      // You can specify the time server pool and the offset, (in seconds)
+      // additionally you can specify the update interval (in milliseconds).
+      // e.g. NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
+      NTPClient timeClient(Udp, ntpServers[i], timezoneOffset);
+  
+      timeClient.begin();
+      if (timeClient.update()) {
+        // Get the current date and time from an NTP server and convert it
+        // to 'UTC+X' by passing 'X' as the time zone offset in hours.
+        // ToDo: Adjusting Daylight Saving Time (https://docs.arduino.cc/libraries/timezone/)
+        auto unixTime = timeClient.getEpochTime();
+        RTCTime timeToSet = RTCTime(unixTime);
+        RTC.setTime(timeToSet);
+
+        // Retrieve the date and time from the RTC and print them
+        RTCTime currentTime;
+        RTC.getTime(currentTime);
+        Serial.println("The RTC was just set to: " + currentTime.toString());
+
+        lastUpdate = millis();
+        break;
+      }
+    }
+  }
+}
+
+#else // ESP32
+//-------------------------------------------------------------------------------------
+// Notification callback function on synchronizing NTP server
+//
+// struct timeval {
+//   time_t      tv_sec;  /* seconds */
+//   suseconds_t tv_usec; /* microseconds */
+// };
+//-------------------------------------------------------------------------------------
+void rtcUpdate(struct timeval *tv) {
+  if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED) {
+    struct tm timeInfo;
+    localtime_r(&tv->tv_sec, &timeInfo);
+
+    Serial.print("The RTC was just set to: ");
+    Serial.println(&timeInfo, "%Y-%m-%d %H:%M:%S");
+  }
+}
+#endif
+
+//-------------------------------------------------------------------------------------
+// Set time zone offset in seconds
+//-------------------------------------------------------------------------------------
+void rtcSetTimeZoneOffset(int32_t offset) {
+#if defined(ARDUINO_UNOR4_WIFI)
+  timezoneOffset = offset;
 #endif
 }
 

@@ -88,6 +88,10 @@ void gfxDrawLogo(void) {
 // Draw Current Time
 //---------------------------------------------------------------------------------------------
 void gfxDrawCurrentTime(void) {
+#if defined(ARDUINO_UNOR4_WIFI)
+  rtcUpdate();
+#endif
+
   static time32_t time;
   time32_t now;
   rtcCurrentTime(&now);
@@ -114,9 +118,8 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   parseWeatherData(doc, data);
   doc.clear();
 
-#if defined(ARDUINO_UNOR4_WIFI)
-//rtcUpdate(data.timezone);
-#endif
+  // Set the time zone offset based on OpenWeather data (effective only for UNO R4 WiFi)
+  rtcSetTimeZoneOffset(data.timezone);
 
   int16_t X, Y, W, H;
 
