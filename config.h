@@ -21,17 +21,22 @@
 #define LONGITUDE   "139.69"  // longitude
 
 //-------------------------------------------------------------------------------------
-// Update interval for requesting OpenWeather
+// Update interval for requests to OpenWeatherMap and NTP server
 //-------------------------------------------------------------------------------------
-#define UPDATE_INTERVAL (10 * 60 * 1000LU)
+#define OWM_UPDATE_INTERVAL (10 * 60 * 1000LU)
+#if defined(ARDUINO_UNOR4_WIFI)
+  #define NTP_UPDATE_INTERVAL ( 1 * 60 * 1000LU)
+#else
+  #define NTP_UPDATE_INTERVAL ( 3 * 60 * 1000LU)
+#endif
 
 //-------------------------------------------------------------------------------------
 // Timezone setting 
 // See the definition of timezone environment variables:
 // https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
 //-------------------------------------------------------------------------------------
-#define TIMEZONE_OFFSET (9 * 3600)  // for UNO R4 WiFi (STD) [GMT+9]
-#define TIMEZONE_STRING "JST-9"     // for ESP32
+#define TIMEZONE_OFFSET   (9 * 3600)  // for UNO R4 WiFi (STD) [GMT+9]
+#define TIMEZONE_STRING   "JST-9"     // for ESP32
 
 //-------------------------------------------------------------------------------------
 // Screen rotation (0 - 3)

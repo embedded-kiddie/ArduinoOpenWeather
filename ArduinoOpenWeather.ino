@@ -29,9 +29,10 @@ void setup() {
 }
 
 void loop() {
+  rtcUpdate();
   gfxDrawCurrentTime();
 
-  if (millis() - updateTime > UPDATE_INTERVAL) {
+  if (millis() - updateTime > OWM_UPDATE_INTERVAL) {
     updateTime = millis();
 
     // Get weather data and draw graphics

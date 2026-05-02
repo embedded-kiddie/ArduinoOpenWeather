@@ -19,7 +19,10 @@
 #define TYPE_GET_STRING 1 // OK (get into String)
 #define TYPE_RAW_STREAM 2 // OK (low memory footprint, recommended)
 
-#define DESERIALIZATION_TYPE  TYPE_STATIC_DAT
+#define DESERIALIZATION_TYPE  TYPE_RAW_STREAM
+
+static constexpr char host[] = HOST;
+static constexpr char path[] = PATH "?lang=" LANGUAGE "&lat=" LATITUDE "&lon=" LONGITUDE "&units=" UNITS "&appid=" API_KEY;
 
 #if defined(ARDUINO_UNOR4_WIFI)
 
@@ -56,9 +59,6 @@
   #endif
 
 #endif
-
-static constexpr char host[] = HOST;
-static constexpr char path[] = PATH "?lang=" LANGUAGE "&lat=" LATITUDE "&lon=" LONGITUDE "&units=" UNITS "&appid=" API_KEY;
 
 #if defined(ESP32)
 //-------------------------------------------------------------------------------------

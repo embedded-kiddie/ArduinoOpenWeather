@@ -88,10 +88,6 @@ void gfxDrawLogo(void) {
 // Draw Current Time
 //---------------------------------------------------------------------------------------------
 void gfxDrawCurrentTime(void) {
-#if defined(ARDUINO_UNOR4_WIFI)
-  rtcUpdate();
-#endif
-
   static time32_t time;
   time32_t now;
   rtcCurrentTime(&now);

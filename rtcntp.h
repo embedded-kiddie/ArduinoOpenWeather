@@ -21,11 +21,7 @@ typedef uint32_t time32_t;
 // 
 //-------------------------------------------------------------------------------------
 void rtcInit(void);
-#if defined(ARDUINO_UNOR4_WIFI)
-void rtcUpdate(void);
-#else
-void rtcUpdate(struct timeval *tv);
-#endif
+bool rtcUpdate(void);
 void rtcSetTimeZoneOffset(int32_t offset);
 bool rtcCurrentTime (time32_t *time);
 void rtcConvertTime (time32_t time, struct tm *tm);

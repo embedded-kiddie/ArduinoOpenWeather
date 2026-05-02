@@ -1,5 +1,9 @@
 # Files
 secrets.h
+fonts/fontconvert/fontconvert
+*.o
+*.a
+*.exe
 
 # OS specific files
 .DS_Store

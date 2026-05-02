@@ -6,7 +6,7 @@
 #ifndef _ROOT_CA_CERTIFICATE_HPP_
 #define _ROOT_CA_CERTIFICATE_HPP_
 
-static const char *root_ca = R"(
+static const char *root_ca = R"literal(
 -----BEGIN CERTIFICATE-----
 MIIFijCCA3KgAwIBAgIQdY39i658BwD6qSWn4cetFDANBgkqhkiG9w0BAQwFADBf
 MQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMTYwNAYDVQQD
@@ -39,6 +39,6 @@ LvKRRFHQV80MNNVIIb/bE/FmJUNS0nAiNs2fxBx1IK1jcmMGDw4nztJqDby1ORrp
 0XZ60Vzk50lJLVU3aPAaOpg+VBeHVOmmJ1CJeyAvP/+/oYtKR5j/K3tJPsMpRmAY
 QqszKbrAKbkTidOIijlBO8n9pu0f9GBj39ItVQGL
 -----END CERTIFICATE-----
-)";
+)literal";
 
 #endif // _ROOT_CA_CERTIFICATE_HPP_
