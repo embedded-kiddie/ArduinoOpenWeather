@@ -5,8 +5,7 @@
 
 //-------------------------------------------------------------------------------------
 // WiFi credentials and OpenWeather API key
-// Please configure your `.gitignore` file appropriately 
-// to prevent exposing "secret.h" on GitHub or others.
+// Configure `.gitignore` appropriately to prevent exposing "secrets.h" on GitHub
 //-------------------------------------------------------------------------------------
 #include "secrets.h"
 
@@ -23,11 +22,11 @@
 //-------------------------------------------------------------------------------------
 // Update interval for requests to OpenWeatherMap and NTP server
 //-------------------------------------------------------------------------------------
-#define OWM_UPDATE_INTERVAL (10 * 60 * 1000LU)
+#define HTTP_REQUEST_INTERVAL (10 * 60 * 1000LU)
 #if defined(ARDUINO_UNOR4_WIFI)
-  #define NTP_UPDATE_INTERVAL ( 1 * 60 * 1000LU)
+  #define NTP_SYNC_INTERVAL   ( 1 * 60 * 1000LU)
 #else
-  #define NTP_UPDATE_INTERVAL ( 3 * 60 * 1000LU)
+  #define NTP_SYNC_INTERVAL   ( 3 * 60 * 1000LU)
 #endif
 
 //-------------------------------------------------------------------------------------

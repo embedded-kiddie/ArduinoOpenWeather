@@ -101,7 +101,7 @@ void gfxDrawCurrentTime(void) {
 #endif
     GFX(setTextColor(TFT_YELLOW, TFT_BLACK));
     GFX(setFont(&NotoSans_SemiBoldItalicNumeric16pt7b));
-    GFX(print(rtcTimeString(now)));
+    GFX(print(rtcStringTime(now)));
   }
 }
 
@@ -132,7 +132,7 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   drawMoonPhase           (X =  80, Y = 250, W =  80, H = 70, data);  // Moon phase
   drawWeatherCondition    (X = 160, Y = 250, W =  80, H = 70, data);  // Cloudiness, Air pressure
 #else // Landscape
-  drawUpdateDateTime      (X =   0, Y =   0, W = 190, H = 14, data);  // Update date and time
+  drawUpdateDateTime      (X =   2, Y =   0, W = 190, H = 14, data);  // Update date and time
   drawWeatherToday        (X =   0, Y =  58, W =  80, H = 88, data);  // Today's weather icon
   drawWeatherDescription  (X = 100, Y =  58, W = 220, H = 14, data);  // Today's weather description
   drawTemperature         (X =  85, Y =  72, W =  80, H = 70, data);  // Today's temperature
@@ -149,7 +149,7 @@ void gfxDrawWeatherData(JsonDocument &doc) {
 //---------------------------------------------------------------------------------------------
 static void drawUpdateDateTime(int X, int Y, int W, int H, WeatherData &data) {
   char buf[32];
-  snprintf(buf, sizeof(buf), "Updated: %s", rtcDateString(data.time).c_str());
+  snprintf(buf, sizeof(buf), "Updated: %s", rtcStringDate(data.time).c_str());
   GFX(setTextColor(COLOR_DATE));
   GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
   drawStringCenter(X, Y - 4, W, H, buf);
@@ -163,12 +163,12 @@ static void drawUpdateDateTime(int X, int Y, int W, int H, WeatherData &data) {
 static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
   GFX(setTextColor(COLOR_TITLE));
   GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
-  drawStringCenter(X, Y, W, H, rtcWeekString(data.weather[0].time).c_str());
+  drawStringCenter(X, Y, W, H, rtcStringWeek(data.weather[0].time).c_str());
 
   struct tm tm;
   rtcConvertTime(data.time, &tm);
-  uint32_t t = tm.tm_hour * 60 + tm.tm_min;
-  char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t <= data.sunset));
+  uint32_t t = (tm.tm_hour - (data.timezone / 3600)) * 60 + (tm.tm_min - (data.timezone % 3600));
+  char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t < data.sunset));
   GFX(setTextColor(COLOR_ICON));
   GFX(setFont(&WeatherIcons_Symbols_min48pt7b));
   drawStringCenter(X, Y + 78, W, 0, icon);
@@ -236,7 +236,7 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
   for (int i = findNextDay(data, 0), N = 0; i < n && N < 4; i += 8, N++, X += W) {
     GFX(setTextColor(COLOR_TITLE));
     GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
-    drawStringCenter(X, Y, W, H, rtcWeekString(data.weather[i + 4].time).c_str());
+    drawStringCenter(X, Y, W, H, rtcStringWeek(data.weather[i + 4].time).c_str());
 
     int tmin = 999, tmax = -999;
     for (int j = i; j < i + 8; j++) {
@@ -506,7 +506,7 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 //
 //-------------------------------------------------------------------------------------
 static void printWeatherData(WeatherData &data) {
-  Serial.print("response: "); Serial.println(rtcTimeString(data.time));
+  Serial.print("response: "); Serial.println(rtcStringTime(data.time));
   Serial.print("timezone: "); Serial.println(data.timezone);
   Serial.print("sunrise : "); Serial.println(data.sunrise);
   Serial.print("sunset  : "); Serial.println(data.sunset);

@@ -10,17 +10,18 @@
 #include "OpenWeather.h"
 #include "root_ca.hpp"
 
-// Setting the libraries to use
+// Select the libraries to use
 #define USE_SECURE_CLIENT true
 #define USE_HTTP_CLIENT   false
 
-// Deserialization method
+// Select a method for deserializing JSON data
 #define TYPE_STATIC_DAT 0 // response_forecast.hpp
-#define TYPE_GET_STRING 1 // OK (get into String)
-#define TYPE_RAW_STREAM 2 // OK (low memory footprint, recommended)
+#define TYPE_GET_STRING 1 // Output to Serial Monitor
+#define TYPE_RAW_STREAM 2 // Deserialize by ArduinoJson
 
 #define DESERIALIZATION_TYPE  TYPE_RAW_STREAM
 
+// Format of an HTTP request to OpenWeatherMap
 static constexpr char host[] = HOST;
 static constexpr char path[] = PATH "?lang=" LANGUAGE "&lat=" LATITUDE "&lon=" LONGITUDE "&units=" UNITS "&appid=" API_KEY;
 
@@ -82,7 +83,7 @@ struct HeapAllocator : ArduinoJson::Allocator {
 // Initialization
 //-------------------------------------------------------------------------------------
 void OpenWeather::Init(void) {
-  // Security settings only need to be configured once
+  // Configure the root CA certificate
 #if USE_SECURE_CLIENT
   #ifdef _ROOT_CA_CERTIFICATE_HPP_
     client.setCACert(root_ca);
@@ -106,7 +107,7 @@ bool OpenWeather::RequestWeatherData(void) {
 #elif (USE_HTTP_CLIENT)
 
   Serial.print("\nConnecting to ");
-  Serial.print(host);
+  Serial.print(String(host) + ":" + String(PORT));
   Serial.print("...");
 
   #if defined(ARDUINO_UNOR4_WIFI)
@@ -166,7 +167,7 @@ bool OpenWeather::RequestWeatherData(void) {
 #else // ! USE_HTTP_CLIENT for UNO R4 WiFi and ESP32
 
   Serial.print("\nConnecting to ");
-  Serial.print(host);
+  Serial.print(String(host) + ":" + String(PORT));
   Serial.print("...");
 
   if (!client.connect(host, PORT)) {

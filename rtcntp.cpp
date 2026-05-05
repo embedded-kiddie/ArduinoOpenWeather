@@ -38,15 +38,15 @@ static int32_t timezoneOffset = TIMEZONE_OFFSET;
 void rtcInit(void) {
   // Initialize real time clock
   RTC.begin();
-  rtcUpdate();
+  rtcSyncNTP();
 }
 
 //-------------------------------------------------------------------------------------
 // Synchronize the RTC with the NTP server
 //-------------------------------------------------------------------------------------
-bool rtcUpdate(void) {
+bool rtcSyncNTP(void) {
   static uint32_t lastUpdate;
-  if (lastUpdate == 0 || millis() - lastUpdate >= NTP_UPDATE_INTERVAL) {
+  if (lastUpdate == 0 || millis() - lastUpdate >= NTP_SYNC_INTERVAL) {
     lastUpdate = millis();
 
     // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
@@ -112,7 +112,7 @@ void rtcInit(void) {
   // https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Time/SimpleTime
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/include/apps/esp_sntp.h
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/apps/sntp/sntp.c
-  sntp_set_sync_interval(NTP_UPDATE_INTERVAL);
+  sntp_set_sync_interval(NTP_SYNC_INTERVAL);
   sntp_set_time_sync_notification_cb(ntp_sync_cb);
 
   // A more convenient approach to handle Time Zone with daylight offset specifying
@@ -129,7 +129,7 @@ void rtcInit(void) {
   }
 }
 
-bool rtcUpdate(void) {
+bool rtcSyncNTP(void) {
   if (synchronized) {
     synchronized = false;
     return true;
@@ -187,7 +187,7 @@ bool rtcCurrentTime(time32_t *t) {
 //-------------------------------------------------------------------------------------
 void rtcConvertTime(time32_t time, struct tm *tm) {
 #if defined(ARDUINO_UNOR4_WIFI)
-  // On UNO R4, it seems the time zone offset set by NTPClient is not reflected.
+  // On UNO R4, a value of time zone offset needs to be added
   time += timezoneOffset;
 #endif
 
@@ -196,33 +196,9 @@ void rtcConvertTime(time32_t time, struct tm *tm) {
 }
 
 //-------------------------------------------------------------------------------------
-// Convert "struct tm" to a String [ Alternative function for "strftime()" ]
-//-------------------------------------------------------------------------------------
-String rtcWeekString(time32_t time) {
-  struct tm tm;
-  rtcConvertTime(time, &tm);
-  return String(week[tm.tm_wday]);
-}
-
-//-------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------
-String rtcDateString(time32_t time) {
-  struct tm tm;
-  time_t t = (time_t)time;
-  localtime_r(&t, &tm);
-
-  char buf[32];
-  snprintf(buf, sizeof(buf), "%s %02d %s %02d:%02d",
-    month[tm.tm_mon], tm.tm_mday, week[tm.tm_wday], tm.tm_hour, tm.tm_min
-  );
-  return String(buf);
-}
-
-//-------------------------------------------------------------------------------------
-//
-//-------------------------------------------------------------------------------------
-String rtcTimeString(time32_t time) {
+String rtcStringTime(time32_t time) {
   struct tm tm;
   time_t t = (time_t)time;
   localtime_r(&t, &tm);
@@ -241,4 +217,28 @@ void rtcPrintTime(time32_t time) {
     month[tm.tm_mon], tm.tm_mday, week[tm.tm_wday], tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec
   );
   Serial.println(buf);
+}
+
+//-------------------------------------------------------------------------------------
+// Convert "struct tm" to a String [ Alternative function for "strftime()" ]
+//-------------------------------------------------------------------------------------
+String rtcStringWeek(time32_t time) {
+  struct tm tm;
+  rtcConvertTime(time, &tm);
+  return String(week[tm.tm_wday]);
+}
+
+//-------------------------------------------------------------------------------------
+//
+//-------------------------------------------------------------------------------------
+String rtcStringDate(time32_t time) {
+  struct tm tm;
+  time_t t = (time_t)time;
+  localtime_r(&t, &tm);
+
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%s %02d %s %02d:%02d",
+    month[tm.tm_mon], tm.tm_mday, week[tm.tm_wday], tm.tm_hour, tm.tm_min
+  );
+  return String(buf);
 }
