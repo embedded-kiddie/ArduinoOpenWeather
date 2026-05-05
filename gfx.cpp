@@ -166,9 +166,12 @@ static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
   drawStringCenter(X, Y, W, H, rtcStringWeek(data.weather[0].time).c_str());
 
   struct tm tm;
-  rtcConvertTime(data.time, &tm);
-  uint32_t t = (tm.tm_hour - (data.timezone / 3600)) * 60 + (tm.tm_min - (data.timezone % 3600));
+  time_t T = (time_t)data.time;
+  localtime_r(&T, &tm);
+
+  uint32_t t = tm.tm_hour * 60 + tm.tm_min;
   char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t < data.sunset));
+
   GFX(setTextColor(COLOR_ICON));
   GFX(setFont(&WeatherIcons_Symbols_min48pt7b));
   drawStringCenter(X, Y + 78, W, 0, icon);
@@ -250,7 +253,7 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
 
     // Display the weather icon at intermediate time (i + 4).
     struct tm tm;
-    rtcConvertTime(data.weather[i + 4].time, &tm);
+    rtcGetLocalTime(data.weather[i + 4].time, &tm);
     uint32_t t = tm.tm_hour * 60 + tm.tm_min;
 
     const char *icon = getWeatherIcon(data.weather[i + 4].id, (data.sunrise <= t && t <= data.sunset));
@@ -302,7 +305,8 @@ static void darwSunriseSunset(int X, int Y, int W, int H, WeatherData &data) {
 //---------------------------------------------------------------------------------------------
 static void drawMoonPhase(int X, int Y, int W, int H, WeatherData &data) {
   struct tm tm;
-  rtcConvertTime(data.time, &tm);
+  time_t t = (time_t)data.time;
+  localtime_r(&t, &tm);
 
   float phase = calc_moon_phase(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
   const uint8_t *moon = get_phase_image(phase);
@@ -371,11 +375,11 @@ static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const c
 //---------------------------------------------------------------------------------------------
 static int findNextDay(WeatherData &data, int n) {
   struct tm today;
-  rtcConvertTime(data.weather[n].time, &today);
+  rtcGetLocalTime(data.weather[n].time, &today);
 
   for (int i = n + 1; i < data.n_weather; i++) {
     struct tm nextDay;
-    rtcConvertTime(data.weather[i].time, &nextDay);
+    rtcGetLocalTime(data.weather[i].time, &nextDay);
     if (nextDay.tm_wday != today.tm_wday) {
       return i;
     }
@@ -466,10 +470,10 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 
   // Get sunrise, Sunset
   struct tm tm;
-  rtcConvertTime((int32_t)doc["city"]["sunrise"], &tm);
+  rtcGetLocalTime((int32_t)doc["city"]["sunrise"], &tm);
   data.sunrise = (uint16_t)(tm.tm_hour * 60 + tm.tm_min);
 
-  rtcConvertTime((int32_t)doc["city"]["sunset"], &tm);
+  rtcGetLocalTime((int32_t)doc["city"]["sunset"], &tm);
   data.sunset  = (uint16_t)(tm.tm_hour * 60 + tm.tm_min);
 
   // Get weather data

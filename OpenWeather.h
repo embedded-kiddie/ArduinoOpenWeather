@@ -29,7 +29,7 @@ struct Weather {
 // All weather data
 //-------------------------------------------------------------------------------------
 struct WeatherData {
-  time32_t  time;         // updated time
+  time32_t  time;         // Local update time of JSON data
   int32_t   timezone;     // offset from UTC+00
   uint16_t  sunrise;      // HH:MM --> HH * 60 + MM
   uint16_t  sunset;       // HH:MM --> HH * 60 + MM
