@@ -1,5 +1,5 @@
 //=====================================================================================
-// OpwnWeather application settings
+// OpwnWeather application configuration
 //=====================================================================================
 #pragma once
 
@@ -10,7 +10,7 @@
 #include "secrets.h"
 
 //-------------------------------------------------------------------------------------
-// OpenWeather settings
+// OpenWeather API
 //-------------------------------------------------------------------------------------
 #define HOST        "api.openweathermap.org"
 #define PATH        "/data/2.5/forecast"
@@ -22,15 +22,15 @@
 //-------------------------------------------------------------------------------------
 // Update interval for requests to OpenWeatherMap and NTP server
 //-------------------------------------------------------------------------------------
-#define HTTP_REQUEST_INTERVAL (10 * 60 * 1000LU)
+#define HTTP_REQUEST_INTERVAL (10 * 60 * 1000LU)  // for OpenWeatherMap
 #if defined(ARDUINO_UNOR4_WIFI)
-  #define NTP_SYNC_INTERVAL   ( 1 * 60 * 1000LU)
+  #define NTP_SYNC_INTERVAL   ( 1 * 60 * 1000LU)  // for NTP servr (UNO R4 WiFi)
 #else
-  #define NTP_SYNC_INTERVAL   ( 3 * 60 * 1000LU)
+  #define NTP_SYNC_INTERVAL   ( 3 * 60 * 1000LU)  // for NTP servr (ESP32)
 #endif
 
 //-------------------------------------------------------------------------------------
-// Timezone setting 
+// Timezone 
 // See the definition of timezone environment variables:
 // https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
 //-------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@
 #define TIMEZONE_STRING   "JST-9"     // for ESP32
 
 //-------------------------------------------------------------------------------------
-// Screen rotation (0 - 3)
+// Screen Rotation (0 - 3)
 //-------------------------------------------------------------------------------------
 #if defined(ARDUINO_UNOR4_WIFI)
 #define TFT_ROTATION  3
@@ -47,7 +47,7 @@
 #endif
 
 //-------------------------------------------------------------------------------------
-// TFT SPI setting
+// SPI GPIO pins configuration for Arduino_GFX by moononournation
 //-------------------------------------------------------------------------------------
 #if defined(ARDUINO_UNOR4_WIFI)
 

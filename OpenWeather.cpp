@@ -154,7 +154,7 @@ bool OpenWeather::RequestWeatherData(void) {
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/HTTPClient/src/HTTPClient.h#L46-L123
   Serial.printf("HTTP status: %d %s\n", status, http.errorToString(status).c_str());
 
-  if (status == HTTP_CODE_OK || status == HTTP_CODE_MOVED_PERMANENTLY) {
+  if (200 <= status && status < 300) {
     Stream &stream = http.getStream();
     ret = readResponse(stream);
   }

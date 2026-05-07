@@ -22,9 +22,9 @@ typedef uint32_t time32_t;
 void rtcInit(void);
 bool rtcSyncNTP(void);
 void rtcSetTimeZoneOffset(int32_t offset);
-bool rtcCurrentTime (time32_t *time);
+time32_t rtcCurrentTime(void);
 void rtcGetLocalTime(time32_t time, struct tm *tm);
 void rtcPrintTime   (time32_t time);  // Apr 01 (Sun) 2026 HH:MM:SS
+String rtcStringDate(time32_t time);  // Apr 01 WED HH:MM
 String rtcStringTime(time32_t time);  // HH:MM:SS
 String rtcStringWeek(time32_t time);  // SUN, MON, ...
-String rtcStringDate(time32_t time);  // Apr 01 WED HH:MM

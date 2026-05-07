@@ -15,10 +15,24 @@
 //---------------------------------------------------------------------------------------------
 // GFX Library for Arduino
 // https://github.com/moononournation/Arduino_GFX
-// https://github.com/moononournation/ArduinoFreeFontFile
 //---------------------------------------------------------------------------------------------
 #include <SPI.h>
 #include <Arduino_GFX_Library.h>
+
+#if defined(ARDUINO_UNOR4_WIFI)
+  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+#else // ESP32
+  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+#endif
+
+#define SPI_FREQ    40000000  // or 80000000
+
+//---------------------------------------------------------------------------------------------
+// Icon Fonts
+// https://github.com/moononournation/ArduinoFreeFontFile
+//---------------------------------------------------------------------------------------------
 #include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // bitmap font
 #include "fonts/NotoSans/SemiBoldAlphabet7pt7b.h"       // bitmap font
 #include "fonts/Icons/WeatherIcons_Symbols_min48pt7b.h" // bitmap font
@@ -41,16 +55,6 @@
 #define GFX_DBG(f)  GFX(f)
 #else
 #define GFX_DBG(f)
-#endif
-
-#define SPI_FREQ    40000000  // or 80000000
-
-#if defined(ARDUINO_UNOR4_WIFI)
-  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
-#else // ESP32
-  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
 #endif
 
 //---------------------------------------------------------------------------------------------
@@ -89,8 +93,7 @@ void gfxDrawLogo(void) {
 //---------------------------------------------------------------------------------------------
 void gfxDrawCurrentTime(void) {
   static time32_t time;
-  time32_t now;
-  rtcCurrentTime(&now);
+  time32_t now = rtcCurrentTime();
 
   if (time != now) {
     time = now;
@@ -463,7 +466,7 @@ static const char *getWeatherDescription(uint16_t weather_id) {
 //-------------------------------------------------------------------------------------
 static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
   // Get updated time of day
-  rtcCurrentTime(&data.time);
+  data.time = rtcCurrentTime();
 
   // Get timezone
   data.timezone = (int32_t)doc["city"]["timezone"];

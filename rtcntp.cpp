@@ -94,7 +94,7 @@ static bool synchronized = false;
 //   suseconds_t tv_usec; /* microseconds */
 // };
 //-------------------------------------------------------------------------------------
-static void ntp_sync_cb(struct timeval *tv) {
+static void rtcSyncNTP_cb(struct timeval *tv) {
   if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED) {
     struct tm timeInfo;
     localtime_r(&tv->tv_sec, &timeInfo);
@@ -113,7 +113,7 @@ void rtcInit(void) {
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/include/apps/esp_sntp.h
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/apps/sntp/sntp.c
   sntp_set_sync_interval(NTP_SYNC_INTERVAL);
-  sntp_set_time_sync_notification_cb(ntp_sync_cb);
+  sntp_set_time_sync_notification_cb(rtcSyncNTP_cb);
 
   // A more convenient approach to handle Time Zone with daylight offset specifying
   // a environment variable with TimeZone definition including daylight adjustment rules.
@@ -149,6 +149,38 @@ void rtcSetTimeZoneOffset(int32_t offset) {
 }
 
 //-------------------------------------------------------------------------------------
+// Get current local time
+//
+// struct timeval {
+//   time_t      tv_sec;  /* seconds */
+//   suseconds_t tv_usec; /* microseconds */
+// };
+//-------------------------------------------------------------------------------------
+time32_t rtcCurrentTime(void) {
+#if defined(ARDUINO_UNOR4_WIFI)
+
+  // https://github.com/arduino/ArduinoCore-renesas/blob/main/libraries/RTC/src/RTC.cpp
+  #if   false
+    RTCTime currentTime;
+    RTC.getTime(currentTime); // Returns false if the RTC has not been initialized
+    return (time32_t)currentTime.getUnixTime();
+  #else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);  // Always returns 0 in ArduinoCore-renesas
+    return (time32_t)tv.tv_sec;
+  #endif
+
+#else // ESP32
+
+  // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-time.c
+  return (time32_t)time(NULL);
+
+#endif
+}
+
+//-------------------------------------------------------------------------------------
+// Convert UTC time to local time
+//
 // struct tm {
 //   int	tm_sec;   // [0-61]
 //   int	tm_min;   // [0-59]
@@ -161,39 +193,6 @@ void rtcSetTimeZoneOffset(int32_t offset) {
 //   int	tm_isdst; // Daylight Saving Time　[DST > 0, DST == 0 or DST < 0]
 // };
 //-------------------------------------------------------------------------------------
-bool rtcCurrentTime(time32_t *t) {
-#if defined(ARDUINO_UNOR4_WIFI)
-
-  #if   true
-    // https://github.com/arduino/ArduinoCore-renesas/blob/main/libraries/RTC/src/RTC.cpp
-    RTCTime currentTime;
-    if (RTC.getTime(currentTime)) {
-      *t = (time32_t)currentTime.getUnixTime();
-      return true;    
-    }
-    return false;
-  #else
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) == 0) {
-      *t = (uint32_t)tv.tv_sec;
-      return true;
-    }
-    return false;
-  #endif
-
-#else // ESP32
-
-  // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-time.c
-  time_t now = time(NULL);
-  *t = (time32_t)now;
-  return true;
-
-#endif
-}
-
-//-------------------------------------------------------------------------------------
-// Convert UTC time to local time
-//-------------------------------------------------------------------------------------
 void rtcGetLocalTime(time32_t time, struct tm *tm) {
 #if defined(ARDUINO_UNOR4_WIFI)
   // On UNO R4, a value of time zone offset needs to be added
@@ -202,6 +201,21 @@ void rtcGetLocalTime(time32_t time, struct tm *tm) {
 
   time_t t = (time_t)time;
   localtime_r(&t, tm);
+}
+
+//-------------------------------------------------------------------------------------
+// Convert local time to a string representing the date
+//-------------------------------------------------------------------------------------
+String rtcStringDate(time32_t time) {
+  struct tm tm;
+  time_t t = (time_t)time;
+  localtime_r(&t, &tm);
+
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%s %02d %s %02d:%02d",
+    month[tm.tm_mon], tm.tm_mday, week[tm.tm_wday], tm.tm_hour, tm.tm_min
+  );
+  return String(buf);
 }
 
 //-------------------------------------------------------------------------------------
@@ -232,25 +246,10 @@ void rtcPrintTime(time32_t time) {
 }
 
 //-------------------------------------------------------------------------------------
-// Convert UTC time to a string representing the day of the week.
+// Convert UTC time to a string representing the day of the week
 //-------------------------------------------------------------------------------------
 String rtcStringWeek(time32_t time) {
   struct tm tm;
   rtcGetLocalTime(time, &tm);
   return String(week[tm.tm_wday]);
-}
-
-//-------------------------------------------------------------------------------------
-//
-//-------------------------------------------------------------------------------------
-String rtcStringDate(time32_t time) {
-  struct tm tm;
-  time_t t = (time_t)time;
-  localtime_r(&t, &tm);
-
-  char buf[32];
-  snprintf(buf, sizeof(buf), "%s %02d %s %02d:%02d",
-    month[tm.tm_mon], tm.tm_mday, week[tm.tm_wday], tm.tm_hour, tm.tm_min
-  );
-  return String(buf);
 }
