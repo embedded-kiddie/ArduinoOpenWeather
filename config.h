@@ -16,8 +16,8 @@
 #define PATH        "/data/2.5/forecast"
 #define UNITS       "metric"  // celsius
 #define LANGUAGE    "ja"      // language
-#define LATITUDE    "35.69"   // latitude
-#define LONGITUDE   "139.69"  // longitude
+#define LATITUDE    "35.69"   // latitude  (Tokyo)
+#define LONGITUDE   "139.69"  // longitude (Tokyo)
 
 //-------------------------------------------------------------------------------------
 // Update interval for requests to OpenWeatherMap and NTP server
@@ -33,6 +33,7 @@
 // Timezone 
 // See the definition of timezone environment variables:
 // https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
+// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
 //-------------------------------------------------------------------------------------
 #define TIMEZONE_OFFSET   (9 * 3600)  // for UNO R4 WiFi (STD) [GMT+9]
 #define TIMEZONE_STRING   "JST-9"     // for ESP32

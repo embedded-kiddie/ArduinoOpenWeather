@@ -1,4 +1,4 @@
-const char *response = R"(
+R"(
 {
     "cod": "200",
     "message": 0,

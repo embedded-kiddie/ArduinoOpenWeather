@@ -15,7 +15,7 @@
 // Hourly weather data
 //-------------------------------------------------------------------------------------
 struct Weather {
-  time32_t  time;         // 32bit unsigned long
+  time32_t  time;         // [sec] (updated local time)
   int16_t   temp;         // [deg]
   uint16_t  wind_speed;   // [m/s]
   uint8_t   wind_deg;     // [deg] (0 to 360)

@@ -15,6 +15,7 @@ static const char *ntpServers[] = {
   "ntp.jst.mfeed.ad.jp",
   "pool.ntp.org",
   "time.google.com",
+//"europe.pool.ntp.org",
 //"time.cloudflare.com",
 //"time.aws.com",
 };
@@ -27,10 +28,9 @@ static const char *ntpServers[] = {
 
 // NTP servers
 static int serverID = 0;
-#define N_SERVERS (sizeof(ntpServers) / sizeof(ntpServers[0]))
+#define NTP_N_SERVERS (sizeof(ntpServers) / sizeof(ntpServers[0]))
 
-// A single instance to let us send and receive packets over UDP
-static WiFiUDP Udp;
+// Time zone offset for RTC
 static int32_t timezoneOffset = TIMEZONE_OFFSET;
 
 //-------------------------------------------------------------------------------------
@@ -50,32 +50,37 @@ bool rtcSyncNTP(void) {
   if (lastUpdate == 0 || millis() - lastUpdate >= NTP_SYNC_INTERVAL) {
     lastUpdate = millis();
 
+    Serial.println("Connecting to " + String(ntpServers[serverID]) + "...");
+
     // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
     // https://github.com/arduino-libraries/NTPClient
     // https://github.com/arduino/ArduinoCore-renesas/tree/main/libraries/RTC/examples/RTC_NTPSync
-    for (int i = 0; i < N_SERVERS; i++) {
-      serverID = (serverID + i) % N_SERVERS;
-      Serial.println(String("Connecting to ") + ntpServers[serverID]);
+    WiFiUDP Udp;
+    NTPClient timeClient(Udp, ntpServers[serverID], TIMEZONE_OFFSET, NTP_SYNC_INTERVAL);
 
-      // By default 'pool.ntp.org' is used with 60 seconds update interval and no offset.
-      // You can specify the time server pool and the offset, (in seconds)
-      // additionally you can specify the update interval (in milliseconds).
-      // e.g. NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
-      NTPClient timeClient(Udp, ntpServers[serverID], timezoneOffset);
-  
-      timeClient.begin();
-      if (timeClient.update()) {
-        // Get the current date and time from an NTP server and convert it
-        // to 'UTC+X' by passing 'X' as the time zone offset in hours.
-        // ToDo: Adjusting Daylight Saving Time (https://docs.arduino.cc/libraries/timezone/)
-        auto unixTime = timeClient.getEpochTime();
-        RTCTime timeToSet = RTCTime(unixTime);
-        RTC.setTime(timeToSet);
-        Serial.println("The RTC was just set to: " + timeToSet.toString());
-        serverID++;
-        return true;
-      }
+    int ret;
+    timeClient.begin();
+    if (timeClient.update()) {
+      // Get the current unix time from an NTP server and set to RTC
+      auto unixTime = timeClient.getEpochTime();
+      RTCTime timeToSet = RTCTime(unixTime);
+      RTC.setTime(timeToSet);
+
+      Serial.println("The RTC was set to " + timeToSet.toString());
+      ret = true;   // RTC update successful
+    } else {
+      Serial.println("failed to connect.");
+      ret = false;  // Failed due to timeout.
     }
+
+    // Stop UDP and NTPClient
+    timeClient.end();
+
+    // Set up the following server
+    serverID = (serverID + 1) % NTP_N_SERVERS;
+    const char *server = ntpServers[serverID];
+    Serial.println("Next NTP server: " + String(server));
+    return ret;
   }
   return false;
 }
@@ -94,7 +99,7 @@ static bool synchronized = false;
 //   suseconds_t tv_usec; /* microseconds */
 // };
 //-------------------------------------------------------------------------------------
-static void rtcSyncNTP_cb(struct timeval *tv) {
+static void syncNTP_cb(struct timeval *tv) {
   if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED) {
     struct tm timeInfo;
     localtime_r(&tv->tv_sec, &timeInfo);
@@ -113,7 +118,7 @@ void rtcInit(void) {
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/include/apps/esp_sntp.h
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/apps/sntp/sntp.c
   sntp_set_sync_interval(NTP_SYNC_INTERVAL);
-  sntp_set_time_sync_notification_cb(rtcSyncNTP_cb);
+  sntp_set_time_sync_notification_cb(syncNTP_cb);
 
   // A more convenient approach to handle Time Zone with daylight offset specifying
   // a environment variable with TimeZone definition including daylight adjustment rules.
@@ -193,7 +198,7 @@ time32_t rtcCurrentTime(void) {
 //   int	tm_isdst; // Daylight Saving Time　[DST > 0, DST == 0 or DST < 0]
 // };
 //-------------------------------------------------------------------------------------
-void rtcGetLocalTime(time32_t time, struct tm *tm) {
+void rtcConvtLocalTime(time32_t time, struct tm *tm) {
 #if defined(ARDUINO_UNOR4_WIFI)
   // On UNO R4, a value of time zone offset needs to be added
   time += timezoneOffset;
@@ -234,9 +239,9 @@ String rtcStringTime(time32_t time) {
 //-------------------------------------------------------------------------------------
 // Print the UTC time from the JSON data as a string.
 //-------------------------------------------------------------------------------------
-void rtcPrintTime(time32_t time) {
+void rtcPrintLocalTime(time32_t time) {
   struct tm tm;
-  rtcGetLocalTime(time, &tm);
+  rtcConvtLocalTime(time, &tm);
 
   char buf[32];
   snprintf(buf, sizeof(buf), "%s %02d (%s) %d %02d:%02d:%02d",
@@ -248,8 +253,15 @@ void rtcPrintTime(time32_t time) {
 //-------------------------------------------------------------------------------------
 // Convert UTC time to a string representing the day of the week
 //-------------------------------------------------------------------------------------
-String rtcStringWeek(time32_t time) {
+const char *rtcLocalDayOfWeek(time32_t time) {
   struct tm tm;
-  rtcGetLocalTime(time, &tm);
-  return String(week[tm.tm_wday]);
+  rtcConvtLocalTime(time, &tm);
+  return week[tm.tm_wday];
+}
+
+//-------------------------------------------------------------------------------------
+// Convert UTC time to a string representing the day of the week
+//-------------------------------------------------------------------------------------
+const char *rtcGetDayOfWeek(int wday) {
+  return week[wday];
 }

@@ -17,14 +17,19 @@
 typedef uint32_t time32_t;
 
 //-------------------------------------------------------------------------------------
-// Function prototype declaration
+// Time management functions for local time
 //-------------------------------------------------------------------------------------
 void rtcInit(void);
 bool rtcSyncNTP(void);
 void rtcSetTimeZoneOffset(int32_t offset);
 time32_t rtcCurrentTime(void);
-void rtcGetLocalTime(time32_t time, struct tm *tm);
-void rtcPrintTime   (time32_t time);  // Apr 01 (Sun) 2026 HH:MM:SS
-String rtcStringDate(time32_t time);  // Apr 01 WED HH:MM
-String rtcStringTime(time32_t time);  // HH:MM:SS
-String rtcStringWeek(time32_t time);  // SUN, MON, ...
+String rtcStringDate(time32_t time);    // Apr 01 WED HH:MM
+String rtcStringTime(time32_t time);    // HH:MM:SS
+const char *rtcGetDayOfWeek(int wday);  // SUN, MON, ...
+
+//-------------------------------------------------------------------------------------
+// Time management functions for UTC time
+//-------------------------------------------------------------------------------------
+void rtcConvtLocalTime(time32_t time, struct tm *tm);
+void rtcPrintLocalTime(time32_t time);  // Apr 01 (Sun) 2026 HH:MM:SS
+const char *rtcLocalDayOfWeek(time32_t time); // SUN, MON, ...

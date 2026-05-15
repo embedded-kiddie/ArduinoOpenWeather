@@ -11,8 +11,8 @@
 #include "root_ca.hpp"
 
 // Select the libraries to use
-#define USE_SECURE_CLIENT true
 #define USE_HTTP_CLIENT   false
+#define USE_SECURE_CLIENT true
 
 // Select a method for deserializing JSON data
 #define TYPE_STATIC_DAT 0 // response_forecast.hpp
@@ -60,24 +60,6 @@ static constexpr char path[] = PATH "?lang=" LANGUAGE "&lat=" LATITUDE "&lon=" L
   #endif
 
 #endif
-
-#if defined(ESP32)
-//-------------------------------------------------------------------------------------
-// Extend the deserialization limit to 16KB or more.
-// https://arduinojson.org/v7/how-to/use-external-ram-on-esp32/
-//-------------------------------------------------------------------------------------
-struct HeapAllocator : ArduinoJson::Allocator {
-  void* allocate(size_t size) override {
-    return heap_caps_malloc(size, MALLOC_CAP_DEFAULT);
-  }
-  void deallocate(void* pointer) override {
-    heap_caps_free(pointer);
-  }
-  void* reallocate(void* ptr, size_t new_size) override {
-    return heap_caps_realloc(ptr, new_size, MALLOC_CAP_DEFAULT);
-  }
-};
-#endif // ESP32
 
 //-------------------------------------------------------------------------------------
 // Initialization
@@ -254,7 +236,9 @@ static constexpr char filter_template[] = R"(
 //-------------------------------------------------------------------------------------
 bool OpenWeather::readResponse(Stream &stream) {
 #if (DESERIALIZATION_TYPE == TYPE_STATIC_DAT)
-  #include "samples/response_forecast.hpp"
+  constexpr char response[] =
+    #include "samples/response_forecast.h"
+  ;
 #else
   Stream &response = stream;
 #endif
@@ -273,7 +257,7 @@ bool OpenWeather::readResponse(Stream &stream) {
   JsonDocument filter;
   deserializeJson(filter, filter_template);
 
-  DeserializationError error = deserializeJson(data, response, DeserializationOption::Filter(filter));
+  auto error = deserializeJson(data, response, DeserializationOption::Filter(filter));
   if (error) {
     Serial.print("deserializeJson() failed: ");
     Serial.println(error.c_str());

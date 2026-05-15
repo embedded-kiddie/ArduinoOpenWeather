@@ -1,4 +1,4 @@
-const char *response = R"(
+R"(
 {
   "coord": {
     "lon": 139.93,

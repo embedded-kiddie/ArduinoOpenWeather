@@ -164,13 +164,13 @@ static void drawUpdateDateTime(int X, int Y, int W, int H, WeatherData &data) {
 // Today's Day of Week and Weather Icon
 //---------------------------------------------------------------------------------------------
 static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
-  GFX(setTextColor(COLOR_TITLE));
-  GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
-  drawStringCenter(X, Y, W, H, rtcStringWeek(data.weather[0].time).c_str());
-
   struct tm tm;
   time_t T = (time_t)data.time;
   localtime_r(&T, &tm);
+
+  GFX(setTextColor(COLOR_TITLE));
+  GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
+  drawStringCenter(X, Y, W, H, rtcGetDayOfWeek(tm.tm_wday));
 
   uint32_t t = tm.tm_hour * 60 + tm.tm_min;
   char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t < data.sunset));
@@ -242,7 +242,7 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
   for (int i = findNextDay(data, 0), N = 0; i < n && N < 4; i += 8, N++, X += W) {
     GFX(setTextColor(COLOR_TITLE));
     GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
-    drawStringCenter(X, Y, W, H, rtcStringWeek(data.weather[i + 4].time).c_str());
+    drawStringCenter(X, Y, W, H, rtcLocalDayOfWeek(data.weather[i + 4].time));
 
     int tmin = 999, tmax = -999;
     for (int j = i; j < i + 8; j++) {
@@ -256,7 +256,7 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
 
     // Display the weather icon at intermediate time (i + 4).
     struct tm tm;
-    rtcGetLocalTime(data.weather[i + 4].time, &tm);
+    rtcConvtLocalTime(data.weather[i + 4].time, &tm);
     uint32_t t = tm.tm_hour * 60 + tm.tm_min;
 
     const char *icon = getWeatherIcon(data.weather[i + 4].id, (data.sunrise <= t && t <= data.sunset));
@@ -378,11 +378,12 @@ static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const c
 //---------------------------------------------------------------------------------------------
 static int findNextDay(WeatherData &data, int n) {
   struct tm today;
-  rtcGetLocalTime(data.weather[n].time, &today);
+  time_t T = (time_t)data.time;
+  localtime_r(&T, &today);
 
-  for (int i = n + 1; i < data.n_weather; i++) {
+  for (int i = n; i < data.n_weather; i++) {
     struct tm nextDay;
-    rtcGetLocalTime(data.weather[i].time, &nextDay);
+    rtcConvtLocalTime(data.weather[i].time, &nextDay);
     if (nextDay.tm_wday != today.tm_wday) {
       return i;
     }
@@ -473,10 +474,10 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 
   // Get sunrise, Sunset
   struct tm tm;
-  rtcGetLocalTime((int32_t)doc["city"]["sunrise"], &tm);
+  rtcConvtLocalTime((int32_t)doc["city"]["sunrise"], &tm);
   data.sunrise = (uint16_t)(tm.tm_hour * 60 + tm.tm_min);
 
-  rtcGetLocalTime((int32_t)doc["city"]["sunset"], &tm);
+  rtcConvtLocalTime((int32_t)doc["city"]["sunset"], &tm);
   data.sunset  = (uint16_t)(tm.tm_hour * 60 + tm.tm_min);
 
   // Get weather data
@@ -520,7 +521,7 @@ static void printWeatherData(WeatherData &data) {
 
   for (int i = 0; i < data.n_weather; i++) {
     Serial.println(i);
-    Serial.print("  date       : "); rtcPrintTime(data.weather[i].time);
+    Serial.print("  date       : "); rtcPrintLocalTime(data.weather[i].time);
     Serial.print("  time       : "); Serial.println((time32_t   )data.weather[i].time);
     Serial.print("  temp       : "); Serial.println((float      )data.weather[i].temp / 10.0f);
     Serial.print("  wind_speed : "); Serial.println((float      )data.weather[i].wind_speed / 10.0f);
