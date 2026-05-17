@@ -136,6 +136,7 @@ bool OpenWeather::RequestWeatherData(void) {
   gfxDrawMessage("Waiting for response...");
 
   if (200 <= status && status < 300) {
+    // Read response body section
     Stream &stream = http.getStream();
     ret = readResponse(stream);
     gfxDrawMessage("done.\n", false);
@@ -173,7 +174,10 @@ bool OpenWeather::RequestWeatherData(void) {
   bool detected = false;
   while (client.connected()) {
     String header = client.readStringUntil('\n');
+
+    gfxDrawMessage(".", false);
     DBG_EXEC(Serial.println(header));
+
     if (header == "\r") {
       DBG_EXEC(Serial.println("End of headers."));
       detected = true;

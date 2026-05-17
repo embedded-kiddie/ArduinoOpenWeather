@@ -944,10 +944,10 @@ float get_moon_age(float phase) {
 //-------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------
-const unsigned char* get_phase_image(float phase) {
+const unsigned char* get_phase_image(float phase, bool northern) {
   uint32_t n = sizeof(moonphase) / sizeof(moonphase[0]);
-  uint32_t i = (uint32_t)(phase * (float)n);
-  return moonphase[i % n];
+  uint32_t i = (uint32_t)(phase * (float)n) % n;
+  return moonphase[northern ? i : (n - 1) - i];
 }
 
 //-------------------------------------------------------------------------------------

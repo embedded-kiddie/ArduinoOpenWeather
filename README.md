@@ -89,7 +89,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 - [x] Fix the day of the week from 21:00 through midnight.
 - [x] Display progress on the opening splash screen.
 - [ ] Make weather icons multi-colorizing.
-- [ ] Make lunar phase images reverse for the Northern and Southern Hemispheres.
+- [x] Make lunar phase images reverse for the Northern and Southern Hemispheres.
 - [ ] Verify Daylight Saving Time by `timezone` in JSON.
 - [x] Supress debug printing to the Serial Monitor.
 

@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "config.h"
 #include "rtcntp.h"
@@ -14,7 +15,6 @@
 
 //---------------------------------------------------------------------------------------------
 // GFX Library for Arduino
-// https://github.com/moononournation/Arduino_GFX
 //---------------------------------------------------------------------------------------------
 #include <SPI.h>
 #include <Arduino_GFX_Library.h>
@@ -27,7 +27,14 @@
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
 #endif
 
-#define SPI_FREQ    40000000  // or 80000000
+#define SPI_FREQ  40000000  // or 80000000
+#define GFX(f)    tft->f
+
+#if   false
+#define GFX_DBG(f)  GFX(f)
+#else
+#define GFX_DBG(f)
+#endif
 
 //---------------------------------------------------------------------------------------------
 // Icon Fonts
@@ -44,18 +51,6 @@
 #define FONT_LARGE_HEIGHT 22
 #define FONT_SMALL_HEIGHT 12
 #define FONT_SMALL_LINEFD 6
-
-#if   true
-#define GFX(f)  tft->f
-#else
-#define GFX(f)
-#endif
-
-#if   false
-#define GFX_DBG(f)  GFX(f)
-#else
-#define GFX_DBG(f)
-#endif
 
 //---------------------------------------------------------------------------------------------
 // Defined in ArduinoOpenWeather.ino
@@ -97,7 +92,8 @@ void gfxDrawLogo(void) {
 // Draw splash message
 //---------------------------------------------------------------------------------------------
 void gfxDrawMessage(char const *msg, bool newline) {
-  if (updateTime == 0) {
+  // Draw during setup and if it does not exceed one line
+  if (updateTime == 0 && GFX(getCursorX()) <= GFX(width()) - SPLASH_MSG_X * 2) {
     GFX(setTextColor(TFT_BLACK, TFT_WHITE));
     GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
 
@@ -159,9 +155,9 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   // Set the time zone offset based on OpenWeather data (effective only for UNO R4 WiFi)
   rtcSetTimeZoneOffset(data.timezone);
 
-  int16_t X, Y, W, H;
-
   GFX(fillScreen(TFT_BLACK));
+
+  int16_t X, Y, W, H;
 
 #if (TFT_ROTATION == 0) || (TFT_ROTATION == 2)  // Portrait
   drawUpdateDateTime      (X =  25, Y =   0, W = 190, H = 14, data);  // Update date and time
@@ -324,6 +320,7 @@ static void darwSunriseSunset(int X, int Y, int W, int H, WeatherData &data) {
 
   snprintf(buf, sizeof(buf), "%02d:%02d", (int)(data.sunset  / 60), (int)(data.sunset  % 60));
   drawStringCenter(X, Y + 8 + (FONT_SMALL_HEIGHT + FONT_SMALL_LINEFD) * 2, W, H, buf);
+
 #else // Landscape
   char buf[32];
   snprintf(buf, sizeof(buf), "Sunrise / Sunset");
@@ -351,7 +348,7 @@ static void drawMoonPhase(int X, int Y, int W, int H, WeatherData &data) {
   localtime_r(&t, &tm);
 
   float phase = calc_moon_phase(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-  const uint8_t *moon = get_phase_image(phase);
+  const uint8_t *moon = get_phase_image(phase, (atof(LONGITUDE) >= 0.0f));
   if (moon) {
     GFX(drawGrayscaleBitmap(X + 16, Y, moon, MOON_WIDTH, MOON_HEIGHT));
   }

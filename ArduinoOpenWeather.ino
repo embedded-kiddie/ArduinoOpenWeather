@@ -23,7 +23,10 @@ void setup() {
   // Get the first weather data
   weather.Init();
   while (!weather.RequestWeatherData()) {
-    delay(10000);
+    // Retry in 10 seconds
+    delay(3000);
+    gfxDrawMessage("Waiting for a retry...\n");
+    delay(7000);
   }
 
   updateTime = millis();
