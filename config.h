@@ -72,4 +72,14 @@
 #define TFT_RST       -1
 #define TFT_BL        21
 
+#endif // ARDUINO_UNOR4_WIFI or ESP32
+
+//-------------------------------------------------------------------------------------
+// Output Serial Monitor for debugging
+//-------------------------------------------------------------------------------------
+#define DEBUG true
+#if DEBUG
+#define DBG_EXEC(x) x
+#else
+#define DBG_EXEC(x)
 #endif

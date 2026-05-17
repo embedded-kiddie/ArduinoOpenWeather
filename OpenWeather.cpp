@@ -8,6 +8,7 @@
 #include "config.h"
 #include "rtcntp.h"
 #include "OpenWeather.h"
+#include "gfx.h"
 #include "root_ca.hpp"
 
 // Select the libraries to use
@@ -88,9 +89,7 @@ bool OpenWeather::RequestWeatherData(void) {
 
 #elif (USE_HTTP_CLIENT)
 
-  Serial.print("\nConnecting to ");
-  Serial.print(String(host) + ":" + String(PORT));
-  Serial.print("...");
+  gfxDrawMessage("\nConnecting to server...");
 
   #if defined(ARDUINO_UNOR4_WIFI)
 
@@ -98,28 +97,27 @@ bool OpenWeather::RequestWeatherData(void) {
   int status = http.get(path);
 
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/HTTPClient/src/HTTPClient.h#L46-L123
-  Serial.print("GET status: ");
-  Serial.println(status);
+  DBG_EXEC(Serial.println("GET status: " + String(status)));
 
   if (status == HTTP_SUCCESS) {
     // Read status code in response
     status = http.responseStatusCode();
-    Serial.print("HTTP status: ");
-    Serial.println(status);
+    DBG_EXEC(Serial.println("HTTP status: " + String(status)));
+    gfxDrawMessage("Waiting for response...");
 
     if (200 <= status && status < 300) {
       // Read response header section
       if (http.skipResponseHeaders() == HTTP_SUCCESS) {
         // Read response body section
         ret = readResponse(http);
+        gfxDrawMessage("done.\n", false);
       } else {
-        Serial.println("Can't read respones body.");
+        gfxDrawMessage("invalid.\n", false);
       }
     }
   }
 
   http.stop();  // Disconnect
-  Serial.println("done.");
 
   #else // USE_HTTP_CLIENT for ESP32
 
@@ -134,31 +132,32 @@ bool OpenWeather::RequestWeatherData(void) {
   int status = http.GET();
 
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/HTTPClient/src/HTTPClient.h#L46-L123
-  Serial.printf("HTTP status: %d %s\n", status, http.errorToString(status).c_str());
+  DBG_EXEC(Serial.println("HTTP status: " + String(status) + http.errorToString(status)));
+  gfxDrawMessage("Waiting for response...");
 
   if (200 <= status && status < 300) {
     Stream &stream = http.getStream();
     ret = readResponse(stream);
+    gfxDrawMessage("done.\n", false);
+  } else {
+    gfxDrawMessage("invalid.\n", false);
   }
 
   http.end();  // Disconnect
-  Serial.println("done.");
 
   #endif // USE_HTTP_CLIENT for UNO R4 WiFi or ESP32
 
 #else // ! USE_HTTP_CLIENT for UNO R4 WiFi and ESP32
 
-  Serial.print("\nConnecting to ");
-  Serial.print(String(host) + ":" + String(PORT));
-  Serial.print("...");
+  gfxDrawMessage("\nConnecting to server...");
 
   if (!client.connect(host, PORT)) {
-    Serial.println("Connection failed!");
+    gfxDrawMessage("failed.\n", false);
     client.stop();
     return false;
   }
 
-  Serial.println("connected.");
+  gfxDrawMessage("done.\n", false);
 
   // Send HTTP request
   // Note: If the header "Transfer-Encoding" is "chunked", use "HTTP/1.0".
@@ -168,13 +167,15 @@ bool OpenWeather::RequestWeatherData(void) {
   client.println("Connection: close");
   client.println();
 
+  gfxDrawMessage("Waiting for response...");
+
   // Read response headers until "\r\n\r\n" is detected.
   bool detected = false;
   while (client.connected()) {
     String header = client.readStringUntil('\n');
-    Serial.println(header);
+    DBG_EXEC(Serial.println(header));
     if (header == "\r") {
-      Serial.println("End of headers.");
+      DBG_EXEC(Serial.println("End of headers."));
       detected = true;
       break;
     }
@@ -183,12 +184,12 @@ bool OpenWeather::RequestWeatherData(void) {
   // Read response body section
   if (detected && client.available()) {
     ret = readResponse(client);
+    gfxDrawMessage("done.\n", false);
   } else {
-    Serial.println("Invalid response.");
+    gfxDrawMessage("invalid.\n", false);
   }
 
   client.stop();
-  Serial.println("done.");
 
 #endif
 
@@ -247,9 +248,9 @@ bool OpenWeather::readResponse(Stream &stream) {
 
   while (response.available()) {
     char c = response.read();
-    Serial.write(c);
+    DBG_EXEC(Serial.write(c));
   }
-  Serial.println();
+  DBG_EXEC(Serial.println());
   return true;
 
 #else
@@ -259,13 +260,16 @@ bool OpenWeather::readResponse(Stream &stream) {
 
   auto error = deserializeJson(data, response, DeserializationOption::Filter(filter));
   if (error) {
-    Serial.print("deserializeJson() failed: ");
-    Serial.println(error.c_str());
+    DBG_EXEC(Serial.print("deserializeJson() failed: "));
+    DBG_EXEC(Serial.println(error.c_str()));
     return false;
   }
 
-  serializeJson(data, Serial); Serial.println();
-//serializeJsonPretty(data, Serial); Serial.println();
+  DBG_EXEC({
+    serializeJson(data, Serial);
+    Serial.println();
+  });
+
   return true;
 
 #endif

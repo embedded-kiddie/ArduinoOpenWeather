@@ -1,5 +1,5 @@
 //=====================================================================================
-// ESP32 and UNO R4 WiFi compatible time management functions
+// UNO R4 WiFi and ESP32 compatible WiFi management function
 //=====================================================================================
 #pragma once
 
@@ -14,14 +14,14 @@
 #endif
 
 void wifiInit(void) {
-  Serial.print("Connecting to WiFi network...");
+  gfxDrawMessage("\nConnecting to WiFi...");
 
 #if defined(ARDUINO_UNOR4_WIFI)
 
   // Check for the WiFi module
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware.");
+    DBG_EXEC(Serial.println("Please upgrade the firmware."));
   }
 
   // Note: Checking the status first will connect more quickly
@@ -44,12 +44,12 @@ void wifiInit(void) {
 #endif // ARDUINO_UNOR4_WIFI or ESP32
 
   // print your board's IP address:
-  Serial.println("done.");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP().toString());
+  gfxDrawMessage("done.\n", false);
+  DBG_EXEC(Serial.print("IP address: "));
+  DBG_EXEC(Serial.println(WiFi.localIP().toString()));
 
   // print the received signal strength:
-  Serial.print("signal strength (RSSI):");
-  Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
+  DBG_EXEC(Serial.print("signal strength (RSSI):"));
+  DBG_EXEC(Serial.print(WiFi.RSSI()));
+  DBG_EXEC(Serial.println(" dBm"));
 }

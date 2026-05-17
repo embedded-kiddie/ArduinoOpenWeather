@@ -6,6 +6,7 @@
 #include <time.h>
 #include "config.h"
 #include "rtcntp.h"
+#include "gfx.h"
 
 static const char *week [] = DAYS_OF_THE_WEEK;
 static const char *month[] = MONTHS_OF_THE_YEAR;
@@ -37,9 +38,16 @@ static int32_t timezoneOffset = TIMEZONE_OFFSET;
 // Initialize the RTC and configure synchronization with NTP server
 //-------------------------------------------------------------------------------------
 void rtcInit(void) {
+  gfxDrawMessage("Syncing RTC with NTP...");
+
   // Initialize real time clock
   RTC.begin();
-  rtcSyncNTP();
+
+  if (rtcSyncNTP()) {
+    gfxDrawMessage("done.\n", false);
+  } else {
+    gfxDrawMessage("timeout.\n", false);
+  }
 }
 
 //-------------------------------------------------------------------------------------
@@ -50,7 +58,7 @@ bool rtcSyncNTP(void) {
   if (lastUpdate == 0 || millis() - lastUpdate >= NTP_SYNC_INTERVAL) {
     lastUpdate = millis();
 
-    Serial.println("Connecting to " + String(ntpServers[serverID]) + "...");
+    DBG_EXEC(Serial.println("Connecting to " + String(ntpServers[serverID]) + "..."));
 
     // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
     // https://github.com/arduino-libraries/NTPClient
@@ -66,10 +74,10 @@ bool rtcSyncNTP(void) {
       RTCTime timeToSet = RTCTime(unixTime);
       RTC.setTime(timeToSet);
 
-      Serial.println("The RTC was set to " + timeToSet.toString());
+      DBG_EXEC(Serial.println("The RTC was set to " + timeToSet.toString()));
       ret = true;   // RTC update successful
     } else {
-      Serial.println("failed to connect.");
+      DBG_EXEC(Serial.println("failed to connect."));
       ret = false;  // Failed due to timeout.
     }
 
@@ -79,7 +87,7 @@ bool rtcSyncNTP(void) {
     // Set up the following server
     serverID = (serverID + 1) % NTP_N_SERVERS;
     const char *server = ntpServers[serverID];
-    Serial.println("Next NTP server: " + String(server));
+    DBG_EXEC(Serial.println("Next NTP server: " + String(server)));
     return ret;
   }
   return false;
@@ -104,8 +112,8 @@ static void syncNTP_cb(struct timeval *tv) {
     struct tm timeInfo;
     localtime_r(&tv->tv_sec, &timeInfo);
 
-    Serial.print("The RTC was just set to: ");
-    Serial.println(&timeInfo, "%Y-%m-%d %H:%M:%S");
+    DBG_EXEC(Serial.print("The RTC was just set to: "));
+    DBG_EXEC(Serial.println(&timeInfo, "%Y-%m-%d %H:%M:%S"));
     synchronized = true;
   }
 }
@@ -114,6 +122,8 @@ static void syncNTP_cb(struct timeval *tv) {
 // Initialize the RTC and configure synchronization with NTP server
 //-------------------------------------------------------------------------------------
 void rtcInit(void) {
+  gfxDrawMessage("Syncing RTC with NTP...");
+
   // https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Time/SimpleTime
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/include/apps/esp_sntp.h
   // https://github.com/espressif/esp-idf/blob/master/components/lwip/apps/sntp/sntp.c
@@ -127,10 +137,11 @@ void rtcInit(void) {
   // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-time.c#L81-L113
   configTzTime(TIMEZONE_STRING, ntpServers[0], ntpServers[1], ntpServers[2]);
 
-  Serial.print("Initializing RTC...");
   struct tm timeInfo;
-  if (!getLocalTime(&timeInfo)) {
-    Serial.println("Synchronization timeout.");
+  if (getLocalTime(&timeInfo)) {
+    gfxDrawMessage("done.\n", false);
+  } else {
+    gfxDrawMessage("timeout.\n", false);
   }
 }
 
@@ -236,6 +247,7 @@ String rtcStringTime(time32_t time) {
   return String(buf);
 }
 
+#if DEBUG
 //-------------------------------------------------------------------------------------
 // Print the UTC time from the JSON data as a string.
 //-------------------------------------------------------------------------------------
@@ -249,6 +261,7 @@ void rtcPrintLocalTime(time32_t time) {
   );
   Serial.println(buf);
 }
+#endif // DEBUG
 
 //-------------------------------------------------------------------------------------
 // Convert UTC time to a string representing the day of the week

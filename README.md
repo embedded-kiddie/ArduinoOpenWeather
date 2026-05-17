@@ -38,6 +38,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     | **Timezone**          | `TIMEZONE_OFFSET` (for UNO R4 WiFi) or `TIMEZONE_STRING` (for ESP32) |
     | **Screen Rotation**   | `TFT_ROTATION` (0,2: portrait / 1,3: landscape)                      |
     | **SPI GPIO pins**     | `TFT_DC`, `TFT_MISO`, `TFT_MOSI`, ...                                |
+    | **Debug Setting**     | Set `DEBUG` to `true` (default) or `false`                           |
 
 2. Create your `secrets.h` for WiFi credential and OpenWeather API key:
 
@@ -86,11 +87,11 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 ## ToDo List
 
 - [x] Fix the day of the week from 21:00 through midnight.
-- [ ] Display progress on the opening splash screen.
+- [x] Display progress on the opening splash screen.
 - [ ] Make weather icons multi-colorizing.
 - [ ] Make lunar phase images reverse for the Northern and Southern Hemispheres.
 - [ ] Verify Daylight Saving Time by `timezone` in JSON.
-- [ ] Supress debug printing to the Serial Monitor.
+- [x] Supress debug printing to the Serial Monitor.
 
 ## Acknowledgement
 

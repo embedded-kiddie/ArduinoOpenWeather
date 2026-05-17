@@ -1,18 +1,20 @@
 //=====================================================================================
-// OpenWeather monitoring for ESP32
+// OpenWeather forcast application for UNO R4 WiFi and ESP32
 //=====================================================================================
 #include "config.h"
-#include "wifi.hpp"
 #include "rtcntp.h"
-#include "gfx.h"
 #include "OpenWeather.h"
+#include "gfx.h"
+#include "wifi.hpp"
 
+uint32_t updateTime = 0;
 static OpenWeather weather;
-static uint32_t updateTime;
 
 void setup() {
-  Serial.begin(115200);
-  while (!Serial || millis() < 1000);
+  DBG_EXEC({
+    Serial.begin(115200);
+    while (!Serial || millis() < 1000);
+  });
 
   gfxInit();
   wifiInit();

@@ -33,14 +33,14 @@
 // Icon Fonts
 // https://github.com/moononournation/ArduinoFreeFontFile
 //---------------------------------------------------------------------------------------------
-#include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // bitmap font
-#include "fonts/NotoSans/SemiBoldAlphabet7pt7b.h"       // bitmap font
-#include "fonts/Icons/WeatherIcons_Symbols_min48pt7b.h" // bitmap font
-#include "fonts/Icons/WeatherIcons_Symbols_min35pt7b.h" // bitmap font
-#include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // bitmap font
+#include "fonts/Icons/WeatherIcons_Symbols_min48pt7b.h" // ICON_LARGE
+#include "fonts/Icons/WeatherIcons_Symbols_min35pt7b.h" // ICON_SMALL
+#include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // ICON_SMALL
+#include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // FONT_LARGE
+#include "fonts/NotoSans/SemiBoldAlphabet7pt7b.h"       // FONT_SMALL
 
-#define ICON_SMALL_HEIGHT 45
 #define ICON_LARGE_HEIGHT 60
+#define ICON_SMALL_HEIGHT 45
 #define FONT_LARGE_HEIGHT 22
 #define FONT_SMALL_HEIGHT 12
 #define FONT_SMALL_LINEFD 6
@@ -56,6 +56,11 @@
 #else
 #define GFX_DBG(f)
 #endif
+
+//---------------------------------------------------------------------------------------------
+// Defined in ArduinoOpenWeather.ino
+//---------------------------------------------------------------------------------------------
+extern uint32_t updateTime;
 
 //---------------------------------------------------------------------------------------------
 // Initialize Screen and Draw Splash Image
@@ -86,6 +91,40 @@ void gfxDrawLogo(void) {
     const_cast<uint16_t *>(OpenWeatherLogoPalette), // Color Index
     OPENWEATHERLOGO_WIDTH, OPENWEATHERLOGO_HEIGHT)  // Width, Height
   );
+}
+
+//---------------------------------------------------------------------------------------------
+// Draw splash message
+//---------------------------------------------------------------------------------------------
+void gfxDrawMessage(char const *msg, bool newline) {
+  if (updateTime == 0) {
+    GFX(setTextColor(TFT_BLACK, TFT_WHITE));
+    GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
+
+    char str[32], *p = str;
+    strncpy(p, msg, sizeof(str) - 1);
+    p[sizeof(str) - 1] = '\0';
+
+    // Trim the leading and trailing '\n'
+    if (p[0] == '\n') { p++; }
+    p[strcspn(p, "\n")] = '\0';
+
+    if (newline) {
+      GFX(setCursor(SPLASH_MSG_X, SPLASH_MSG_Y));
+    }
+
+    GFX(print(p));
+
+    // Clear the area from the end of the message to the end of the line
+    int16_t X = GFX(getCursorX());
+    GFX(fillRect(
+      X, SPLASH_MSG_Y - FONT_SMALL_HEIGHT,
+      TFT_WIDTH - X, FONT_SMALL_HEIGHT + FONT_SMALL_LINEFD,
+      TFT_WHITE
+    ));
+  }
+
+  DBG_EXEC(Serial.print(msg));
 }
 
 //---------------------------------------------------------------------------------------------
@@ -503,15 +542,16 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 
   data.n_weather = n;
 
-#if DEBUG
+#if DEBUG && false
   printWeatherData(data);
   Serial.print("Total: " ); Serial.print(n); // 40
   Serial.print(", Size: "); Serial.println(sizeof(data)); // 692
 #endif
 }
 
+#if DEBUG
 //-------------------------------------------------------------------------------------
-//
+// Output WeatherData to Serial Monitor for debugging
 //-------------------------------------------------------------------------------------
 static void printWeatherData(WeatherData &data) {
   Serial.print("response: "); Serial.println(rtcStringTime(data.time));
@@ -532,3 +572,4 @@ static void printWeatherData(WeatherData &data) {
     Serial.print("  id         : "); Serial.println((int        )data.weather[i].id);
   }
 }
+#endif // DEBUG
