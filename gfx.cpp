@@ -27,9 +27,12 @@
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
 #endif
 
-#define SPI_FREQ  40000000  // or 80000000
+#define SPI_FREQ  40000000  // for ILI9341
 #define GFX(f)    tft->f
 
+//---------------------------------------------------------------------------------------------
+// Layout check for debug
+//---------------------------------------------------------------------------------------------
 #if   false
 #define GFX_DBG(f)  GFX(f)
 #else
@@ -53,9 +56,9 @@
 #define FONT_SMALL_LINEFD 6
 
 //---------------------------------------------------------------------------------------------
-// Defined in ArduinoOpenWeather.ino
+//　Display the message only on the splash screen at startup
 //---------------------------------------------------------------------------------------------
-extern uint32_t updateTime;
+static bool draw_message = true;
 
 //---------------------------------------------------------------------------------------------
 // Initialize Screen and Draw Splash Image
@@ -93,7 +96,7 @@ void gfxDrawLogo(void) {
 //---------------------------------------------------------------------------------------------
 void gfxDrawMessage(char const *msg, bool newline) {
   // Draw during setup and if it does not exceed one line
-  if (updateTime == 0 && GFX(getCursorX()) <= GFX(width()) - SPLASH_MSG_X * 2) {
+  if (draw_message == true && GFX(getCursorX()) < GFX(width()) - SPLASH_MSG_X) {
     GFX(setTextColor(TFT_BLACK, TFT_WHITE));
     GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
 
@@ -152,9 +155,6 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   parseWeatherData(doc, data);
   doc.clear();
 
-  // Set the time zone offset based on OpenWeather data (effective only for UNO R4 WiFi)
-  rtcSetTimeZoneOffset(data.timezone);
-
   GFX(fillScreen(TFT_BLACK));
 
   int16_t X, Y, W, H;
@@ -180,6 +180,9 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
   drawMoonPhase           (X = 240, Y = 160, W =  80, H = 76, data);  // Moon phase
 #endif
+
+  // Display the message only on the splash screen at startup
+  draw_message = false;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -507,6 +510,9 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 
   // Get timezone
   data.timezone = (int32_t)doc["city"]["timezone"];
+
+  // Set the time zone offset based on OpenWeather data (effective only for UNO R4 WiFi)
+  rtcSetTimeZoneOffset(data.timezone);
 
   // Get sunrise, Sunset
   struct tm tm;

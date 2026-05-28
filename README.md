@@ -10,7 +10,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 ## Software Requirements
 
-### libraries
+### Libraries
 - [moononournation/Arduino_GFX][3] v1.6.5
 - [ArduinoJson][4] 7.4.3
 

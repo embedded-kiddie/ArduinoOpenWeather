@@ -31,7 +31,7 @@ static const char *ntpServers[] = {
 static int serverID = 0;
 #define NTP_N_SERVERS (sizeof(ntpServers) / sizeof(ntpServers[0]))
 
-// Time zone offset for RTC
+// Time zone offset for RTC (only for UNO R4 WiFi)
 static int32_t timezoneOffset = TIMEZONE_OFFSET;
 
 //-------------------------------------------------------------------------------------
@@ -54,20 +54,19 @@ void rtcInit(void) {
 // Synchronize the RTC with the NTP server
 //-------------------------------------------------------------------------------------
 bool rtcSyncNTP(void) {
-  static uint32_t lastUpdate;
-  if (lastUpdate == 0 || millis() - lastUpdate >= NTP_SYNC_INTERVAL) {
-    lastUpdate = millis();
+  DBG_EXEC(Serial.println("Connecting to " + String(ntpServers[serverID]) + "..."));
 
-    DBG_EXEC(Serial.println("Connecting to " + String(ntpServers[serverID]) + "..."));
+  // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
+  // https://github.com/arduino-libraries/NTPClient
+  // https://github.com/arduino/ArduinoCore-renesas/tree/main/libraries/RTC/examples/RTC_NTPSync
+  WiFiUDP Udp;
 
-    // https://docs.arduino.cc/tutorials/uno-r4-wifi/rtc/
-    // https://github.com/arduino-libraries/NTPClient
-    // https://github.com/arduino/ArduinoCore-renesas/tree/main/libraries/RTC/examples/RTC_NTPSync
-    WiFiUDP Udp;
+  bool stat = false;
+  do {
+    // Connect UDP to the NTP default port
     NTPClient timeClient(Udp, ntpServers[serverID], TIMEZONE_OFFSET, NTP_SYNC_INTERVAL);
-
-    int ret;
     timeClient.begin();
+
     if (timeClient.update()) {
       // Get the current unix time from an NTP server and set to RTC
       auto unixTime = timeClient.getEpochTime();
@@ -75,10 +74,9 @@ bool rtcSyncNTP(void) {
       RTC.setTime(timeToSet);
 
       DBG_EXEC(Serial.println("The RTC was set to " + timeToSet.toString()));
-      ret = true;   // RTC update successful
+      stat = true;   // RTC update successful
     } else {
       DBG_EXEC(Serial.println("failed to connect."));
-      ret = false;  // Failed due to timeout.
     }
 
     // Stop UDP and NTPClient
@@ -88,9 +86,9 @@ bool rtcSyncNTP(void) {
     serverID = (serverID + 1) % NTP_N_SERVERS;
     const char *server = ntpServers[serverID];
     DBG_EXEC(Serial.println("Next NTP server: " + String(server)));
-    return ret;
-  }
-  return false;
+  } while (stat == false);
+
+  return true;
 }
 
 #else // ESP32

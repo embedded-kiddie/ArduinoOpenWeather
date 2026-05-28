@@ -4,7 +4,7 @@
 #pragma once
 
 //-------------------------------------------------------------------------------------
-// WiFi credentials and OpenWeather API key
+// WiFi credentials, OpenWeather API key and location
 // Configure `.gitignore` appropriately to prevent exposing "secrets.h" on GitHub
 //-------------------------------------------------------------------------------------
 #include "secrets.h"
@@ -16,8 +16,10 @@
 #define PATH        "/data/2.5/forecast"
 #define UNITS       "metric"  // celsius
 #define LANGUAGE    "ja"      // language
+#ifndef LATITUDE
 #define LATITUDE    "35.69"   // latitude  (Tokyo)
 #define LONGITUDE   "139.69"  // longitude (Tokyo)
+#endif
 
 //-------------------------------------------------------------------------------------
 // Update interval for requests to OpenWeatherMap and NTP server
@@ -77,7 +79,7 @@
 //-------------------------------------------------------------------------------------
 // Output Serial Monitor for debugging
 //-------------------------------------------------------------------------------------
-#define DEBUG true
+#define DEBUG false
 #if DEBUG
 #define DBG_EXEC(x) x
 #else

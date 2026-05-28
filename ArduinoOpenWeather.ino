@@ -7,7 +7,9 @@
 #include "gfx.h"
 #include "wifi.hpp"
 
-uint32_t updateTime = 0;
+// Macros that perform tasks periodically
+#define DO_EVERY(period, lastTime)  static uint32_t lastTime = 0; for (uint32_t now = millis(); now - lastTime >= period; lastTime = now)
+
 static OpenWeather weather;
 
 void setup() {
@@ -29,17 +31,17 @@ void setup() {
     delay(7000);
   }
 
-  updateTime = millis();
   gfxDrawWeatherData(weather.data);
 }
 
 void loop() {
-  rtcSyncNTP();
+  DO_EVERY(NTP_SYNC_INTERVAL, lastTime1) {
+    rtcSyncNTP();
+  }
+
   gfxDrawCurrentTime();
 
-  if (millis() - updateTime > HTTP_REQUEST_INTERVAL) {
-    updateTime = millis();
-
+  DO_EVERY(HTTP_REQUEST_INTERVAL, lastTime2) {
     // Get weather data and draw graphics
     if (weather.RequestWeatherData()) {
       gfxDrawWeatherData(weather.data);

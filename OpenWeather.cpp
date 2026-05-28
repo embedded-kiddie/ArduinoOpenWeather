@@ -110,9 +110,9 @@ bool OpenWeather::RequestWeatherData(void) {
       if (http.skipResponseHeaders() == HTTP_SUCCESS) {
         // Read response body section
         ret = readResponse(http);
-        gfxDrawMessage("done.\n", false);
+        gfxDrawMessage("Done.\n");
       } else {
-        gfxDrawMessage("invalid.\n", false);
+        gfxDrawMessage("Bad response.\n");
       }
     }
   }
@@ -139,9 +139,9 @@ bool OpenWeather::RequestWeatherData(void) {
     // Read response body section
     Stream &stream = http.getStream();
     ret = readResponse(stream);
-    gfxDrawMessage("done.\n", false);
+    gfxDrawMessage("Done.\n");
   } else {
-    gfxDrawMessage("invalid.\n", false);
+    gfxDrawMessage("Bad response.\n");
   }
 
   http.end();  // Disconnect
@@ -188,9 +188,9 @@ bool OpenWeather::RequestWeatherData(void) {
   // Read response body section
   if (detected && client.available()) {
     ret = readResponse(client);
-    gfxDrawMessage("done.\n", false);
+    gfxDrawMessage("Done.\n");
   } else {
-    gfxDrawMessage("invalid.\n", false);
+    gfxDrawMessage("Bad response.\n");
   }
 
   client.stop();
