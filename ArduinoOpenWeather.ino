@@ -1,5 +1,25 @@
 //=====================================================================================
 // OpenWeather forcast application for UNO R4 WiFi and ESP32
+//  Auther: embedded-kiddie (https://github.com/embedded-kiddie)
+//  Released under the MIT license (https://opensource.org/license/mit)
+//
+// Linked libraries (tested):
+//  UNO R4 WiFi (1.6.0):
+//    SPI
+//    Wire
+//    WiFiS3 at version 0.0.0 (Firmware version: 0.6.0)
+//    RTC at version 1.0
+//    NTPClient at version 3.2.1
+//    ArduinoJson at version 7.4.3
+//    GFX Library for Arduino at version 1.6.5
+//  ESP32 (3.3.9):
+//    WiFi at version 3.3.9
+//    Networking at version 3.3.9
+//    NetworkClientSecure at version 3.3.9
+//    SPI at version 3.3.9
+//    Wire at version 3.3.9
+//    ArduinoJson at version 7.4.3
+//    GFX Library for Arduino at version 1.6.5
 //=====================================================================================
 #include "config.h"
 #include "rtcntp.h"
@@ -13,22 +33,20 @@
 static OpenWeather weather;
 
 void setup() {
-  DBG_EXEC({
-    Serial.begin(115200);
-    while (!Serial || millis() < 1000);
-  });
+  Serial.begin(115200);
+  while (!Serial || millis() < 1000);
 
   gfxInit();
   wifiInit();
-  rtcInit();
+  while (!rtcInit()) {
+    delay(1000);
+  }
 
   // Get the first weather data
   weather.Init();
   while (!weather.RequestWeatherData()) {
-    // Retry in 10 seconds
-    delay(3000);
     gfxDrawMessage("Waiting for a retry...\n");
-    delay(7000);
+    delay(10000); // Retry in 10 seconds
   }
 
   gfxDrawWeatherData(weather.data);

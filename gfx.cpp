@@ -1,5 +1,5 @@
 //=============================================================================
-// GUI for OpenWeatherMap
+// GUI for OpenWeather
 //=============================================================================
 #include <Arduino.h>
 #include <stdio.h>
@@ -27,6 +27,9 @@
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
 #endif
 
+//---------------------------------------------------------------------------------------------
+// Graphics function
+//---------------------------------------------------------------------------------------------
 #define SPI_FREQ  40000000  // for ILI9341
 #define GFX(f)    tft->f
 
@@ -40,20 +43,21 @@
 #endif
 
 //---------------------------------------------------------------------------------------------
-// Icon Fonts
+// Fonts and Icons
+// https://fonts.google.com/noto/specimen/Noto+Sans
 // https://github.com/moononournation/ArduinoFreeFontFile
 //---------------------------------------------------------------------------------------------
-#include "fonts/Icons/WeatherIcons_Symbols_min48pt7b.h" // ICON_LARGE
-#include "fonts/Icons/WeatherIcons_Symbols_min35pt7b.h" // ICON_SMALL
-#include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // ICON_SMALL
-#include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // FONT_LARGE
 #include "fonts/NotoSans/SemiBoldAlphabet7pt7b.h"       // FONT_SMALL
+#include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // FONT_LARGE
+#include "fonts/Icons/WeatherIcons_Symbols_48pt7b.h"    // ICON_LARGE
+#include "fonts/Icons/WeatherIcons_Symbols_35pt7b.h"    // ICON_SMALL
+#include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // ICON_SMALL
 
-#define ICON_LARGE_HEIGHT 60
-#define ICON_SMALL_HEIGHT 45
-#define FONT_LARGE_HEIGHT 22
 #define FONT_SMALL_HEIGHT 12
 #define FONT_SMALL_LINEFD 6
+#define FONT_LARGE_HEIGHT 22
+#define ICON_LARGE_HEIGHT 60
+#define ICON_SMALL_HEIGHT 45
 
 //---------------------------------------------------------------------------------------------
 //　Display the message only on the splash screen at startup
@@ -96,7 +100,7 @@ void gfxDrawLogo(void) {
 //---------------------------------------------------------------------------------------------
 void gfxDrawMessage(char const *msg, bool newline) {
   // Draw during setup and if it does not exceed one line
-  if (draw_message == true && GFX(getCursorX()) < GFX(width()) - SPLASH_MSG_X) {
+  if (draw_message == true) {
     GFX(setTextColor(TFT_BLACK, TFT_WHITE));
     GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
 
@@ -110,17 +114,14 @@ void gfxDrawMessage(char const *msg, bool newline) {
 
     if (newline) {
       GFX(setCursor(SPLASH_MSG_X, SPLASH_MSG_Y));
+      GFX(fillRect(
+        0, SPLASH_MSG_Y - FONT_SMALL_HEIGHT,
+        TFT_WIDTH, TFT_HEIGHT - (SPLASH_MSG_Y - FONT_SMALL_HEIGHT),
+        TFT_WHITE
+      ));
     }
 
     GFX(print(p));
-
-    // Clear the area from the end of the message to the end of the line
-    int16_t X = GFX(getCursorX());
-    GFX(fillRect(
-      X, SPLASH_MSG_Y - FONT_SMALL_HEIGHT,
-      TFT_WIDTH - X, FONT_SMALL_HEIGHT + FONT_SMALL_LINEFD,
-      TFT_WHITE
-    ));
   }
 
   DBG_EXEC(Serial.print(msg));
@@ -165,20 +166,20 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   drawWeatherDescription  (X = 100, Y =  56, W = 140, H = 14, data);  // Today's weather description
   drawTemperature         (X =  80, Y =  72, W =  80, H = 72, data);  // Today's temperature
   drawWindIconSpeed       (X = 160, Y =  72, W =  80, H = 72, data);  // Wind icon and speed
-  drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
-  darwSunriseSunset       (X =   0, Y = 250, W =  80, H = 70, data);  // Sunrise, Sunset
+  drawWeatherCondition    (X =   0, Y = 250, W =  80, H = 70, data);  // Cloudiness, Rainfall
   drawMoonPhase           (X =  80, Y = 250, W =  80, H = 70, data);  // Moon phase
-  drawWeatherCondition    (X = 160, Y = 250, W =  80, H = 70, data);  // Cloudiness, Air pressure
+  darwSunriseSunset       (X = 160, Y = 250, W =  80, H = 70, data);  // Sunrise, Sunset
+  drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
 #else // Landscape
   drawUpdateDateTime      (X =   2, Y =   0, W = 190, H = 14, data);  // Update date and time
   drawWeatherToday        (X =   0, Y =  58, W =  80, H = 88, data);  // Today's weather icon
   drawWeatherDescription  (X = 100, Y =  58, W = 220, H = 14, data);  // Today's weather description
   drawTemperature         (X =  85, Y =  72, W =  80, H = 70, data);  // Today's temperature
   drawWindIconSpeed       (X = 170, Y =  72, W =  80, H = 70, data);  // Wind icon and speed
-  drawWeatherCondition    (X = 250, Y =  72, W =  70, H = 70, data);  // Cloudiness, Air pressure
+  drawWeatherCondition    (X = 250, Y =  72, W =  70, H = 70, data);  // Cloudiness, Rainfall
   darwSunriseSunset       (X = 180, Y =  20, W = 140, H = 30, data);  // Sunrise, Sunset
-  drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
   drawMoonPhase           (X = 240, Y = 160, W =  80, H = 76, data);  // Moon phase
+  drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
 #endif
 
   // Display the message only on the splash screen at startup
@@ -214,7 +215,7 @@ static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
   char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t < data.sunset));
 
   GFX(setTextColor(COLOR_ICON));
-  GFX(setFont(&WeatherIcons_Symbols_min48pt7b));
+  GFX(setFont(&WeatherIcons_Symbols_48pt7b));
   drawStringCenter(X, Y + 78, W, 0, icon);
 
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
@@ -299,7 +300,7 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
 
     const char *icon = getWeatherIcon(data.weather[i + 4].id, (data.sunrise <= t && t <= data.sunset));
     GFX(setTextColor(COLOR_ICON));
-    GFX(setFont(&WeatherIcons_Symbols_min35pt7b));
+    GFX(setFont(&WeatherIcons_Symbols_35pt7b));
     drawStringCenter(X - 5, Y + 78, W, 0, icon);
 
     GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
@@ -357,7 +358,6 @@ static void drawMoonPhase(int X, int Y, int W, int H, WeatherData &data) {
   }
 
   GFX(setTextColor(COLOR_TITLE));
-  GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
   GFX(setCursor(X + 12, Y + H - FONT_SMALL_HEIGHT + 8));
   GFX(print("Age"));
 
@@ -489,7 +489,7 @@ static const char *getWeatherDescription(uint16_t weather_id) {
       default : break;
     }
     case 8: switch (weather_id) {
-      case 800: return "Clear";
+      case 800: return "Clear Sky";
       case 801:
       case 802:
       case 803:
@@ -505,10 +505,8 @@ static const char *getWeatherDescription(uint16_t weather_id) {
 //
 //-------------------------------------------------------------------------------------
 static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
-  // Get updated time of day
+  // Get updated time of day, timezone
   data.time = rtcCurrentTime();
-
-  // Get timezone
   data.timezone = (int32_t)doc["city"]["timezone"];
 
   // Set the time zone offset based on OpenWeather data (effective only for UNO R4 WiFi)

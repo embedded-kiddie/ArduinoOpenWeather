@@ -1,5 +1,5 @@
-#ifndef WeatherIcons_Symbols_min35pt7b_H
-#define WeatherIcons_Symbols_min35pt7b_H
+#ifndef WeatherIcons_Symbols_35pt7b_H
+#define WeatherIcons_Symbols_35pt7b_H
 
 #ifdef __AVR__
 #include <avr/io.h>
@@ -16,7 +16,7 @@
 #define PROGMEM
 #endif
 
-const uint8_t WeatherIcons_Symbols_min35pt7bBitmaps[] PROGMEM = {
+const uint8_t WeatherIcons_Symbols_35pt7bBitmaps[] PROGMEM = {
   0x00, 0x00, 0x7F, 0x00, 0x00, 0x00, 0x01, 0xFF, 0xF0, 0x00, 0x00, 0x01,
   0xFF, 0xFC, 0x00, 0x00, 0x03, 0xF0, 0x1F, 0x80, 0x00, 0x03, 0xE0, 0x03,
   0xE0, 0x00, 0x03, 0xE0, 0x00, 0xF8, 0x00, 0x01, 0xE0, 0x00, 0x3C, 0x00,
@@ -218,7 +218,7 @@ const uint8_t WeatherIcons_Symbols_min35pt7bBitmaps[] PROGMEM = {
   0x7F, 0x80, 0x00, 0xC0, 0x00, 0x6F, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x80,
   0x00, 0x00, 0x00, 0x19, 0x80, 0x00, 0x00, 0x00, 0x08, 0x00 };
 
-const GFXglyph WeatherIcons_Symbols_min35pt7bGlyphs[] PROGMEM = {
+const GFXglyph WeatherIcons_Symbols_35pt7bGlyphs[] PROGMEM = {
   {     0,  41,  27,  47,    3,  -33 },   // 0x41 'A'
   {   139,  41,  37,  47,    3,  -40 },   // 0x42 'B'
   {   329,  37,  41,  40,    3,  -43 },   // 0x43 'C'
@@ -232,11 +232,11 @@ const GFXglyph WeatherIcons_Symbols_min35pt7bGlyphs[] PROGMEM = {
   {  1993,  41,  38,  47,    3,  -40 },   // 0x4B 'K'
   {  2188,  40,  42,  46,    3,  -39 } }; // 0x4C 'L'
 
-const GFXfont WeatherIcons_Symbols_min35pt7b PROGMEM = {
-  (uint8_t  *)WeatherIcons_Symbols_min35pt7bBitmaps,
-  (GFXglyph *)WeatherIcons_Symbols_min35pt7bGlyphs,
+const GFXfont WeatherIcons_Symbols_35pt7b PROGMEM = {
+  (uint8_t  *)WeatherIcons_Symbols_35pt7bBitmaps,
+  (GFXglyph *)WeatherIcons_Symbols_35pt7bGlyphs,
   0x41, 0x4C, 75 };
 
 // Approx. 2489 bytes
 
-#endif // WeatherIcons_Symbols_min35pt7b_H
+#endif // WeatherIcons_Symbols_35pt7b_H

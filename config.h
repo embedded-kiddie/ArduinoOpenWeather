@@ -22,9 +22,9 @@
 #endif
 
 //-------------------------------------------------------------------------------------
-// Update interval for requests to OpenWeatherMap and NTP server
+// Update interval for requests to OpenWeather and NTP server
 //-------------------------------------------------------------------------------------
-#define HTTP_REQUEST_INTERVAL (10 * 60 * 1000LU)  // for OpenWeatherMap
+#define HTTP_REQUEST_INTERVAL (10 * 60 * 1000LU)  // for OpenWeather
 #if defined(ARDUINO_UNOR4_WIFI)
   #define NTP_SYNC_INTERVAL   ( 1 * 60 * 1000LU)  // for NTP servr (UNO R4 WiFi)
 #else

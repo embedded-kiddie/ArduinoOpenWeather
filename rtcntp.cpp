@@ -37,7 +37,7 @@ static int32_t timezoneOffset = TIMEZONE_OFFSET;
 //-------------------------------------------------------------------------------------
 // Initialize the RTC and configure synchronization with NTP server
 //-------------------------------------------------------------------------------------
-void rtcInit(void) {
+bool rtcInit(void) {
   gfxDrawMessage("Syncing RTC with NTP...");
 
   // Initialize real time clock
@@ -45,8 +45,10 @@ void rtcInit(void) {
 
   if (rtcSyncNTP()) {
     gfxDrawMessage("done.\n", false);
+    return true;
   } else {
     gfxDrawMessage("timeout.\n", false);
+    return false;
   }
 }
 
@@ -119,7 +121,7 @@ static void syncNTP_cb(struct timeval *tv) {
 //-------------------------------------------------------------------------------------
 // Initialize the RTC and configure synchronization with NTP server
 //-------------------------------------------------------------------------------------
-void rtcInit(void) {
+bool rtcInit(void) {
   gfxDrawMessage("Syncing RTC with NTP...");
 
   // https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Time/SimpleTime
@@ -138,8 +140,10 @@ void rtcInit(void) {
   struct tm timeInfo;
   if (getLocalTime(&timeInfo)) {
     gfxDrawMessage("done.\n", false);
+    return true;
   } else {
     gfxDrawMessage("timeout.\n", false);
+    return false;
   }
 }
 

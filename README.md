@@ -18,7 +18,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 | Package                    | Version                                     |
 | -------------------------- | ------------------------------------------- |
-| Board Platform             | [Arduino UNO R4 Boards by Arduino][5] 1.5.3 |
+| Board Platform             | [Arduino UNO R4 Boards by Arduino][5] 1.6.0 |
 | NTP Client                 | [NTPClient][6] 3.2.1                        |
 | HTTP Client (experimental) | [ArduinoHttpClient][7] 0.6.1                |
 
@@ -26,7 +26,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 | Package        | Version                               |
 | -------------- | ------------------------------------- |
-| Board Platform | [esp32 by Espressif Systems][8] 3.3.8 |
+| Board Platform | [esp32 by Espressif Systems][8] 3.3.9 |
 
 ## Software Configuration
 

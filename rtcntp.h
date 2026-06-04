@@ -19,7 +19,7 @@ typedef uint32_t time32_t;
 //-------------------------------------------------------------------------------------
 // Time management functions for local time
 //-------------------------------------------------------------------------------------
-void rtcInit(void);
+bool rtcInit(void);
 bool rtcSyncNTP(void);
 void rtcSetTimeZoneOffset(int32_t offset);
 time32_t rtcCurrentTime(void);

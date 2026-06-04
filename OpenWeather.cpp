@@ -22,7 +22,7 @@
 
 #define DESERIALIZATION_TYPE  TYPE_RAW_STREAM
 
-// Format of an HTTP request to OpenWeatherMap
+// Format of an HTTP request to OpenWeather
 static constexpr char host[] = HOST;
 static constexpr char path[] = PATH "?lang=" LANGUAGE "&lat=" LATITUDE "&lon=" LONGITUDE "&units=" UNITS "&appid=" API_KEY;
 
@@ -103,7 +103,7 @@ bool OpenWeather::RequestWeatherData(void) {
     // Read status code in response
     status = http.responseStatusCode();
     DBG_EXEC(Serial.println("HTTP status: " + String(status)));
-    gfxDrawMessage("Waiting for response...");
+    gfxDrawMessage("Receiving response...");
 
     if (200 <= status && status < 300) {
       // Read response header section
@@ -133,7 +133,7 @@ bool OpenWeather::RequestWeatherData(void) {
 
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/HTTPClient/src/HTTPClient.h#L46-L123
   DBG_EXEC(Serial.println("HTTP status: " + String(status) + http.errorToString(status)));
-  gfxDrawMessage("Waiting for response...");
+  gfxDrawMessage("Receiving response...");
 
   if (200 <= status && status < 300) {
     // Read response body section
@@ -154,7 +154,7 @@ bool OpenWeather::RequestWeatherData(void) {
 
   if (!client.connect(host, PORT)) {
     gfxDrawMessage("failed.\n", false);
-    client.stop();
+    client.stop(); // it takes seceral seconds
     return false;
   }
 
@@ -168,7 +168,7 @@ bool OpenWeather::RequestWeatherData(void) {
   client.println("Connection: close");
   client.println();
 
-  gfxDrawMessage("Waiting for response...");
+  gfxDrawMessage("Receiving response...");
 
   // Read response headers until "\r\n\r\n" is detected.
   bool detected = false;
