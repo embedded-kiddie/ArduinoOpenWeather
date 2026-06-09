@@ -1,4 +1,4 @@
-/*  GIMP header image file format (INDEXED): /Users/kiyo/Desktop/OpenWeatherLogo.h  */
+/*  GIMP header image file format (INDEXED): OpenWeatherLogo-Indexed.h  */
 
 static unsigned int width = 180;
 static unsigned int height = 78;

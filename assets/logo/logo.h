@@ -1,15 +1,20 @@
-//=============================================================================
-// OpenWeather Logo image (RGB565 INDEXED)
-// Original image: https://openweather.co.uk/brand_guidelines
-// GIMP: Change mode to 8bit index color and export as a C source code header
-//=============================================================================
-#pragma once
+#ifndef _LOGO_H_
+#define _LOGO_H_
 
-#define OPENWEATHERLOGO_WIDTH 180
-#define OPENWEATHERLOGO_HEIGHT 78
+/*  GIMP header image file format (INDEXED): OpenWeatherLogo-Indexed.h  */
 
-// GIMP header image file format (RGB565 INDEXED): GIMP_export.h
-static constexpr uint16_t OpenWeatherLogoPalette[] PROGMEM = { // 512 bytes
+#define OPENWEATHERLOGO_INDEXED_WIDTH 180
+#define OPENWEATHERLOGO_INDEXED_HEIGHT 78
+
+/*  Call this macro repeatedly.  After each use, the pixel data can be extracted  */
+
+#define HEADER_PIXEL(data,pixel) {\
+pixel[0] = header_data_cmap[(unsigned char)data[0]][0]; \
+pixel[1] = header_data_cmap[(unsigned char)data[0]][1]; \
+pixel[2] = header_data_cmap[(unsigned char)data[0]][2]; \
+data ++; }
+
+static const unsigned short header_data_cmap[256] = {
   0x4208, 0x4208, 0x4208, 0x4208, 0x4208, 0x4228, 0x4228, 0x4229,
   0x4228, 0x4229, 0x4229, 0x4A49, 0x4A49, 0x4A49, 0x4A49, 0x4A69,
   0x4A6A, 0x4A69, 0x4A6A, 0x528A, 0x528A, 0x528A, 0x528A, 0x52AA,
@@ -43,8 +48,7 @@ static constexpr uint16_t OpenWeatherLogoPalette[] PROGMEM = { // 512 bytes
   0xFFDF, 0xFFDF, 0xFFDF, 0xFFFF, 0xFFDF, 0xFFFF, 0xFFFF, 0xFFFF,
   0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF
 };
-
-static const uint8_t OpenWeatherLogoIndexed[] PROGMEM  = { // 14040 bytes
+static const unsigned char header_data[] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
   0xFF, 0xFE, 0xFE, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFE, 0xFE, 0xFE, 0xFF,
@@ -924,3 +928,5 @@ static const uint8_t OpenWeatherLogoIndexed[] PROGMEM  = { // 14040 bytes
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
+
+#endif
