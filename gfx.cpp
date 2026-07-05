@@ -21,10 +21,10 @@
 
 #if defined(ARDUINO_UNOR4_WIFI)
   Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, false);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #else // ESP32
   Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, false);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #endif
 
 //---------------------------------------------------------------------------------------------
@@ -75,7 +75,9 @@ void gfxInit(void) {
   }
 
   // Initialize LCD
-  GFX(begin(SPI_FREQ));
+  while (!GFX(begin(SPI_FREQ))) {
+    delay(100);
+  }
   GFX(setRotation(TFT_ROTATION));
   GFX(fillScreen(TFT_WHITE));
 
