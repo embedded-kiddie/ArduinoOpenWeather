@@ -45,8 +45,12 @@ void setup() {
   // Get the first weather data
   weather.Init();
   while (!weather.RequestWeatherData()) {
-    gfxDrawMessage("Waiting for a retry...\n");
-    delay(10000); // Retry in 10 seconds
+    for (int i = 10; i > 0; i--) {
+      char buf[32];
+      snprintf(buf, sizeof(buf), "Waiting for a retry: %2d", i);
+      gfxDrawMessage(buf);
+      delay(1000);
+    }
   }
 
   gfxDrawWeatherData(weather.data);

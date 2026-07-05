@@ -55,23 +55,26 @@
 #if defined(ARDUINO_UNOR4_WIFI)
 
 // Arduino UNO R4 WiFi
-#define TFT_DC        9
-#define TFT_MISO      MISO  // 12
-#define TFT_MOSI      MOSI  // 11
-#define TFT_SCLK      SCK   // 13
+// https://github.com/arduino/ArduinoCore-renesas/blob/main/variants/*/pins_arduino.h
+// TFT_RST and TFT_DC should be configured based on your wiring
+#define TFT_RST       D8    //  8
+#define TFT_DC        D9    //  9
 #define TFT_CS        CS    // 10
-#define TFT_RST       8
+#define TFT_MOSI      MOSI  // 11
+#define TFT_MISO      MISO  // 12
+#define TFT_SCLK      SCK   // 13
 #define TFT_BL        -1
 
 #else // ESP32
 
 // ESP32-2432S028R (CYD)
+// https://github.com/espressif/arduino-esp32/blob/master/variants/jczn_2432s028r/pins_arduino.h
+#define TFT_RST       -1
 #define TFT_DC        2
 #define TFT_MISO      12
 #define TFT_MOSI      13
 #define TFT_SCLK      14
 #define TFT_CS        15
-#define TFT_RST       -1
 #define TFT_BL        21
 
 #endif // ARDUINO_UNOR4_WIFI or ESP32

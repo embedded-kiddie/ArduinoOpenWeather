@@ -21,10 +21,10 @@
 
 #if defined(ARDUINO_UNOR4_WIFI)
   Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, false);
 #else // ESP32
   Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, false);
 #endif
 
 //---------------------------------------------------------------------------------------------
