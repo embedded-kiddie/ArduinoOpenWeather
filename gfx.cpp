@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------------------------
 // Graphics function
 //---------------------------------------------------------------------------------------------
-#define SPI_FREQ  40000000  // for ILI9341
 #define GFX(f)    tft->f
 
 //---------------------------------------------------------------------------------------------
@@ -75,19 +74,19 @@ void gfxInit(void) {
   }
 
   // Initialize LCD
-  while (!GFX(begin(SPI_FREQ))) {
+  while (!GFX(begin())) {
     delay(100);
   }
-  GFX(setRotation(TFT_ROTATION));
-  GFX(fillScreen(TFT_WHITE));
 
-  gfxDrawLogo();
+  // Show the logo image
+  gfxDrawSplashImage();
 }
 
 //---------------------------------------------------------------------------------------------
 // https://openweather.co.uk/brand_guidelines
 //---------------------------------------------------------------------------------------------
-void gfxDrawLogo(void) {
+void gfxDrawSplashImage(void) {
+  GFX(fillScreen(TFT_WHITE));
   GFX(drawIndexedBitmap(
     (GFX(width ()) - OPENWEATHERLOGO_WIDTH ) / 2,   // X
     (GFX(height()) - OPENWEATHERLOGO_HEIGHT) / 3,   // Y

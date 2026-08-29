@@ -11,15 +11,15 @@
 //    RTC at version 1.0
 //    NTPClient at version 3.2.1
 //    ArduinoJson at version 7.4.3
-//    GFX Library for Arduino at version 1.6.5
-//  ESP32 (3.3.9):
-//    WiFi at version 3.3.9
-//    Networking at version 3.3.9
-//    NetworkClientSecure at version 3.3.9
-//    SPI at version 3.3.9
-//    Wire at version 3.3.9
+//    GFX Library for Arduino at version 1.6.7
+//  ESP32 (3.3.11):
+//    WiFi at version 3.3.11
+//    Networking at version 3.3.11
+//    NetworkClientSecure at version 3.3.11
+//    SPI at version 3.3.11
+//    Wire at version 3.3.11
 //    ArduinoJson at version 7.4.3
-//    GFX Library for Arduino at version 1.6.5
+//    GFX Library for Arduino at version 1.6.7
 //=====================================================================================
 #include "config.h"
 #include "rtcntp.h"
@@ -45,7 +45,7 @@ void setup() {
   // Get the first weather data
   weather.Init();
   while (!weather.RequestWeatherData()) {
-    for (int i = 10; i > 0; i--) {
+    for (int i = RETRY_INTERVAL; i > 0; i--) {
       char buf[32];
       snprintf(buf, sizeof(buf), "Waiting for a retry: %2d", i);
       gfxDrawMessage(buf);

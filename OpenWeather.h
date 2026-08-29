@@ -7,6 +7,9 @@
 #include <time.h>
 #include <ArduinoJson.h>
 
+// Retry Interval
+#define RETRY_INTERVAL  15 // [sec]
+
 // Scaling for data compression
 #define SCALE_MUL(type, val, scale) ((type)(val) * (scale))
 #define SCALE_DIV(type, val, scale) ((type)(val) / (scale))
@@ -34,7 +37,7 @@ struct WeatherData {
   uint16_t  sunrise;      // HH:MM --> HH * 60 + MM
   uint16_t  sunset;       // HH:MM --> HH * 60 + MM
   int32_t   n_weather;    // number of weather data
-  Weather   weather[40];  // 8/day x 5
+  Weather   weather[40];  // 8 entries/day x 5 days
 };
 
 //-------------------------------------------------------------------------------------

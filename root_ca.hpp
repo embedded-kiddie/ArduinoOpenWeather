@@ -1,8 +1,6 @@
 //=====================================================================================
 // Root CA (Certification Authority) certificate for openweathermap.org
 //=====================================================================================
-#pragma once
-
 #ifndef _ROOT_CA_CERTIFICATE_HPP_
 #define _ROOT_CA_CERTIFICATE_HPP_
 

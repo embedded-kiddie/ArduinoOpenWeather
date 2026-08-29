@@ -37,7 +37,7 @@
 
 // Public
 void gfxInit(void);
-void gfxDrawLogo(void);
+void gfxDrawSplashImage(void);
 void gfxDrawCurrentTime(void);
 void gfxDrawWeatherData(JsonDocument &doc);
 void gfxDrawMessage(char const *msg, bool newline = true);

@@ -63,7 +63,7 @@
 #define TFT_MOSI      MOSI  // 11
 #define TFT_MISO      MISO  // 12
 #define TFT_SCLK      SCK   // 13
-#define TFT_BL        -1
+#define TFT_BL        -1    // Connect directly to 3.3V
 
 #else // ESP32
 

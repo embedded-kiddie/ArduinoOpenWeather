@@ -11,7 +11,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 ## Software Requirements
 
 ### Libraries
-- [moononournation/Arduino_GFX][3] v1.6.5
+- [moononournation/Arduino_GFX][3] v1.6.7
 - [ArduinoJson][4] 7.4.3
 
 ### UNO R4 WiFi
@@ -24,9 +24,9 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 ### ESP32
 
-| Package        | Version                               |
-| -------------- | ------------------------------------- |
-| Board Platform | [esp32 by Espressif Systems][8] 3.3.9 |
+| Package        | Version                                |
+| -------------- | -------------------------------------- |
+| Board Platform | [esp32 by Espressif Systems][8] 3.3.11 |
 
 ## Software Configuration
 
