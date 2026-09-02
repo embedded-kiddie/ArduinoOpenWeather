@@ -32,7 +32,7 @@ static int serverID = 0;
 #define NTP_N_SERVERS (sizeof(ntpServers) / sizeof(ntpServers[0]))
 
 // Time zone offset for RTC (only for UNO R4 WiFi)
-static int32_t timezoneOffset = TIMEZONE_OFFSET;
+static int32_t timezoneOffset = NTP_TIMEZONE_OFFSET;
 
 //-------------------------------------------------------------------------------------
 // Initialize the RTC and configure synchronization with NTP server
@@ -66,16 +66,22 @@ bool rtcSyncNTP(void) {
   bool stat = false;
   do {
     // Connect UDP to the NTP default port
-    NTPClient timeClient(Udp, ntpServers[serverID], TIMEZONE_OFFSET, NTP_SYNC_INTERVAL);
+    NTPClient timeClient(Udp, ntpServers[serverID], NTP_TIMEZONE_OFFSET, NTP_SYNC_INTERVAL);
     timeClient.begin();
 
     if (timeClient.update()) {
       // Get the current unix time from an NTP server and set to RTC
       auto unixTime = timeClient.getEpochTime();
-      RTCTime timeToSet = RTCTime(unixTime);
-      RTC.setTime(timeToSet);
+      RTCTime rtcTime = RTCTime(unixTime);
 
-      DBG_EXEC(Serial.println("The RTC was set to " + timeToSet.toString()));
+      // Set Daylight Savint Time
+      if (NTP_TIMEZONE_DST && RTC.getTime(rtcTime)) {
+        rtcTime.setSaveLight(SaveLight::SAVING_TIME_ACTIVE);
+      }
+
+      RTC.setTime(rtcTime);
+
+      DBG_EXEC(Serial.println("The RTC was set to " + rtcTime.toString()));
       stat = true;   // RTC update successful
     } else {
       DBG_EXEC(Serial.println("failed to connect."));
@@ -135,7 +141,7 @@ bool rtcInit(void) {
   // A list of rules for your zone could be obtained from:
   // https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
   // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-time.c#L81-L113
-  configTzTime(TIMEZONE_STRING, ntpServers[0], ntpServers[1], ntpServers[2]);
+  configTzTime(NTP_TIMEZONE_STRING, ntpServers[0], ntpServers[1], ntpServers[2]);
 
   struct tm timeInfo;
   if (getLocalTime(&timeInfo)) {

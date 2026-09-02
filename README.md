@@ -18,7 +18,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 | Package                    | Version                                     |
 | -------------------------- | ------------------------------------------- |
-| Board Platform             | [Arduino UNO R4 Boards by Arduino][5] 1.6.0 |
+| Platform / Board           | [Arduino UNO R4 Boards by Arduino][5] 1.6.0 |
 | NTP Client                 | [NTPClient][6] 3.2.1                        |
 | HTTP Client (experimental) | [ArduinoHttpClient][7] 0.6.1                |
 
@@ -35,7 +35,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     | Item                  | Configuration Parameters                                             |
     | --------------------- | -------------------------------------------------------------------- |
     | **OpenWeather API**   | `LANGUAGE`, `LATITUDE` and `LONGITUDE`                               |
-    | **Timezone**          | `TIMEZONE_OFFSET` (for UNO R4 WiFi) or `TIMEZONE_STRING` (for ESP32) |
+    | **Timezone**          | `NTP_TIMEZONE_OFFSET` (UNO R4 WiFi) or `NTP_TIMEZONE_STRING` (ESP32) |
     | **Screen Rotation**   | `TFT_ROTATION` (0,2: portrait / 1,3: landscape)                      |
     | **SPI GPIO pins**     | `TFT_DC`, `TFT_MISO`, `TFT_MOSI`, ...                                |
     | **Debug Setting**     | Set `DEBUG` to `true` (default) or `false`                           |
@@ -52,14 +52,12 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
     ```c++
     #if defined(ARDUINO_UNOR4_WIFI)
-    Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-    Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+      Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
+      Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
     #else // ESP32
-    Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-    Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+      Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED, VSPI);
+      Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
     #endif
-
-    #define SPI_FREQ    40000000  // or 80000000
     ```
 
 4. Open [`rtcntp.cpp`][11] and configure nearby NTP servers:
@@ -90,7 +88,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 - [x] Display progress on the opening splash screen.
 - [ ] Make weather icons multi-colorizing.
 - [x] Make lunar phase images reverse for the Northern and Southern Hemispheres.
-- [ ] Verify Daylight Saving Time by `timezone` in JSON.
+- [x] Verify Daylight Saving Time by `timezone` returned from OpenWeather.
 - [x] Supress debug printing to the Serial Monitor.
 
 ## Acknowledgement

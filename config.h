@@ -16,10 +16,22 @@
 #define PATH        "/data/2.5/forecast"
 #define UNITS       "metric"  // celsius
 #define LANGUAGE    "ja"      // language
-#ifndef LATITUDE
+#ifndef LATITUDE              // if undefined in secrets.h
 #define LATITUDE    "35.69"   // latitude  (Tokyo)
 #define LONGITUDE   "139.69"  // longitude (Tokyo)
 #endif
+
+//-------------------------------------------------------------------------------------
+// Timezone setting for NTP
+// See the definition of timezone environment variables:
+// https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
+// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+//
+// Note: Since UNO R4 RTC doesn't support timezone, manual configuration is required.
+//-------------------------------------------------------------------------------------
+#define NTP_TIMEZONE_DST    false       // Daylight Saving Time (UNO R4 WiFi)
+#define NTP_TIMEZONE_OFFSET (9 * 3600)  // Time offset from UTC (UNO R4 WiFi)
+#define NTP_TIMEZONE_STRING "JST-9"     // Posix timezone string (ESP32)
 
 //-------------------------------------------------------------------------------------
 // Update interval for requests to OpenWeather and NTP server
@@ -30,15 +42,6 @@
 #else
   #define NTP_SYNC_INTERVAL   ( 3 * 60 * 1000LU)  // for NTP servr (ESP32)
 #endif
-
-//-------------------------------------------------------------------------------------
-// Timezone 
-// See the definition of timezone environment variables:
-// https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
-// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
-//-------------------------------------------------------------------------------------
-#define TIMEZONE_OFFSET   (9 * 3600)  // for UNO R4 WiFi (STD) [GMT+9]
-#define TIMEZONE_STRING   "JST-9"     // for ESP32
 
 //-------------------------------------------------------------------------------------
 // Screen Rotation (0 - 3)
@@ -55,7 +58,7 @@
 #if defined(ARDUINO_UNOR4_WIFI)
 
 // Arduino UNO R4 WiFi
-// https://github.com/arduino/ArduinoCore-renesas/blob/main/variants/*/pins_arduino.h
+// https://github.com/arduino/ArduinoCore-renesas/blob/main/variants/UNOWIFIR4/pins_arduino.h
 // TFT_RST and TFT_DC should be configured based on your wiring
 #define TFT_RST       D8    //  8
 #define TFT_DC        D9    //  9
@@ -64,6 +67,7 @@
 #define TFT_MISO      MISO  // 12
 #define TFT_SCLK      SCK   // 13
 #define TFT_BL        -1    // Connect directly to 3.3V
+#define SPI_FREQUENCY       // Default for UNO R4
 
 #else // ESP32
 
@@ -76,6 +80,7 @@
 #define TFT_SCLK      14
 #define TFT_CS        15
 #define TFT_BL        21
+#define SPI_FREQUENCY 80000000  // ILI9341 for ESP32 (40MHz or 80MHz)
 
 #endif // ARDUINO_UNOR4_WIFI or ESP32
 

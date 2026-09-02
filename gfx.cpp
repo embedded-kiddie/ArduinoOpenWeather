@@ -21,9 +21,11 @@
 
 #if defined(ARDUINO_UNOR4_WIFI)
   Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
+//Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED);
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #else // ESP32
-  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+//Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED);
+  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED, VSPI);
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #endif
 
@@ -74,7 +76,7 @@ void gfxInit(void) {
   }
 
   // Initialize LCD
-  while (!GFX(begin())) {
+  while (!GFX(begin(SPI_FREQUENCY))) {
     delay(100);
   }
 
@@ -87,19 +89,37 @@ void gfxInit(void) {
 //---------------------------------------------------------------------------------------------
 void gfxDrawSplashImage(void) {
   GFX(fillScreen(TFT_WHITE));
+  int16_t X = (GFX(width ()) - OPENWEATHERLOGO_WIDTH ) / 2;
+  int16_t Y = (GFX(height()) - OPENWEATHERLOGO_HEIGHT) / 3;
+
+#ifndef OPENWEATHERLOGO1_WIDTH
   GFX(drawIndexedBitmap(
-    (GFX(width ()) - OPENWEATHERLOGO_WIDTH ) / 2,   // X
-    (GFX(height()) - OPENWEATHERLOGO_HEIGHT) / 3,   // Y
+    X, Y,
     const_cast<uint8_t  *>(OpenWeatherLogoIndexed), // Indexed bitmap
     const_cast<uint16_t *>(OpenWeatherLogoPalette), // Color Index
     OPENWEATHERLOGO_WIDTH, OPENWEATHERLOGO_HEIGHT)  // Width, Height
   );
+#else
+  // Split a single image into two parts to reduce the Flash size
+  GFX(drawIndexedBitmap(
+    X, Y,
+    const_cast<uint8_t  *>(OpenWeatherLogo1Indexed), // Indexed bitmap
+    const_cast<uint16_t *>(OpenWeatherLogo1Palette), // Color Index
+    OPENWEATHERLOGO1_WIDTH, OPENWEATHERLOGO1_HEIGHT)  // Width, Height
+  );
+  GFX(drawIndexedBitmap(
+    X, Y + OPENWEATHERLOGO1_HEIGHT,
+    const_cast<uint8_t  *>(OpenWeatherLogo2Indexed), // Indexed bitmap
+    const_cast<uint16_t *>(OpenWeatherLogo2Palette), // Color Index
+    OPENWEATHERLOGO2_WIDTH, OPENWEATHERLOGO2_HEIGHT)  // Width, Height
+  );
+#endif
 }
 
 //---------------------------------------------------------------------------------------------
 // Draw splash message
 //---------------------------------------------------------------------------------------------
-void gfxDrawMessage(char const *msg, bool newline) {
+void gfxDrawMessage(char const *msg, bool newline, int16_t X) {
   // Draw during setup and if it does not exceed one line
   if (draw_message == true) {
     GFX(setTextColor(TFT_BLACK, TFT_WHITE));
@@ -114,10 +134,11 @@ void gfxDrawMessage(char const *msg, bool newline) {
     p[strcspn(p, "\n")] = '\0';
 
     if (newline) {
-      GFX(setCursor(SPLASH_MSG_X, SPLASH_MSG_Y));
+      if (X == 0) { X = SPLASH_MSG_X; }
+      GFX(setCursor(X, SPLASH_MSG_Y));
       GFX(fillRect(
-        0, SPLASH_MSG_Y - FONT_SMALL_HEIGHT,
-        TFT_WIDTH, TFT_HEIGHT - (SPLASH_MSG_Y - FONT_SMALL_HEIGHT),
+        X, SPLASH_MSG_Y - FONT_SMALL_HEIGHT,
+        TFT_WIDTH - X, TFT_HEIGHT - (SPLASH_MSG_Y - FONT_SMALL_HEIGHT),
         TFT_WHITE
       ));
     }
@@ -126,6 +147,13 @@ void gfxDrawMessage(char const *msg, bool newline) {
   }
 
   DBG_EXEC(Serial.print(msg));
+}
+
+//---------------------------------------------------------------------------------------------
+// Get text cursor X location
+//---------------------------------------------------------------------------------------------
+int16_t gfxGetLastCursorX(void) {
+  return GFX(getCursorX());
 }
 
 //---------------------------------------------------------------------------------------------
@@ -544,10 +572,10 @@ static void parseWeatherData(JsonDocument &doc, WeatherData &data) {
 
   data.n_weather = n;
 
-#if DEBUG && false
+#if DEBUG
   printWeatherData(data);
   Serial.print("Total: " ); Serial.print(n); // 40
-  Serial.print(", Size: "); Serial.println(sizeof(data)); // 692
+  Serial.print(", Size: "); Serial.println(sizeof(data)); // 656
 #endif
 }
 
