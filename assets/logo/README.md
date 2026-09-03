@@ -68,6 +68,14 @@ static const unsigned char header_data[] = {
 #endif
 ```
 
+# Saturation Enhancement for RGB565 Image
+
+When converting an RGB888 image to RGB565, the colors displayed on the LCD may differ significantly.
+
+In such cases, use GIMP to adjust settings like saturation and layer masks to bring the colors closer to the original.
+
+![Saturation Enhancement](SaturationEnhancement.jpg "Saturation enhancement and white opaque layer mask")
+
 [1]: https://www.gimp.org/ "GIMP - GNU Image Manipulation Program"
 [2]: https://docs.gimp.org/3.2/en/gimp-image-convert-indexed.html "6.6. Indexed mode"
 [3]: https://docs.gimp.org/3.2/en/file-header-export.html "5.24. Export Image as Header"

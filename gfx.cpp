@@ -89,30 +89,29 @@ void gfxInit(void) {
 //---------------------------------------------------------------------------------------------
 void gfxDrawSplashImage(void) {
   GFX(fillScreen(TFT_WHITE));
-  int16_t X = (GFX(width ()) - OPENWEATHERLOGO_WIDTH ) / 2;
-  int16_t Y = (GFX(height()) - OPENWEATHERLOGO_HEIGHT) / 3;
+  int16_t X = (GFX(width ()) - OPENWEATHER_LOGO_WIDTH ) / 2;
+  int16_t Y = (GFX(height()) - OPENWEATHER_LOGO_HEIGHT) / 3;
 
-#ifndef OPENWEATHERLOGO1_WIDTH
+#ifdef  OPENWEATHER_LOGO_16bitRGBBitmap
+  GFX(draw16bitRGBBitmap(X, Y,
+    OpenWeatherLogo1, OPENWEATHER_LOGO1_WIDTH, OPENWEATHER_LOGO1_HEIGHT
+  ));
+  GFX(draw16bitRGBBitmap(X, Y + OPENWEATHER_LOGO1_HEIGHT,
+    OpenWeatherLogo2, OPENWEATHER_LOGO2_WIDTH, OPENWEATHER_LOGO2_HEIGHT
+  ));
+#else // OPENWEATHER_LOGO_IndexedBitmap
   GFX(drawIndexedBitmap(
     X, Y,
-    const_cast<uint8_t  *>(OpenWeatherLogoIndexed), // Indexed bitmap
-    const_cast<uint16_t *>(OpenWeatherLogoPalette), // Color Index
-    OPENWEATHERLOGO_WIDTH, OPENWEATHERLOGO_HEIGHT)  // Width, Height
-  );
-#else
-  // Split a single image into two parts to reduce the Flash size
+    const_cast<uint8_t  *>(OpenWeatherLogo1_IndexedImage),  // Indexed Image
+    const_cast<uint16_t *>(OpenWeatherLogo1_ColorPalette),  // Color Palette
+    OPENWEATHER_LOGO1_WIDTH, OPENWEATHER_LOGO1_HEIGHT       // Width, Height
+  ));
   GFX(drawIndexedBitmap(
-    X, Y,
-    const_cast<uint8_t  *>(OpenWeatherLogo1Indexed), // Indexed bitmap
-    const_cast<uint16_t *>(OpenWeatherLogo1Palette), // Color Index
-    OPENWEATHERLOGO1_WIDTH, OPENWEATHERLOGO1_HEIGHT)  // Width, Height
-  );
-  GFX(drawIndexedBitmap(
-    X, Y + OPENWEATHERLOGO1_HEIGHT,
-    const_cast<uint8_t  *>(OpenWeatherLogo2Indexed), // Indexed bitmap
-    const_cast<uint16_t *>(OpenWeatherLogo2Palette), // Color Index
-    OPENWEATHERLOGO2_WIDTH, OPENWEATHERLOGO2_HEIGHT)  // Width, Height
-  );
+    X, Y + OPENWEATHER_LOGO1_HEIGHT,
+    const_cast<uint8_t  *>(OpenWeatherLogo2_IndexedImage),  // Indexed Image
+    const_cast<uint16_t *>(OpenWeatherLogo2_ColorPalette),  // Color Palette
+    OPENWEATHER_LOGO2_WIDTH, OPENWEATHER_LOGO2_HEIGHT       // Width, Height
+  ));
 #endif
 }
 
