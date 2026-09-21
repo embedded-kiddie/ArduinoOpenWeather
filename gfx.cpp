@@ -20,8 +20,8 @@
 #include <Arduino_GFX_Library.h>
 
 #if defined(ARDUINO_UNOR4_WIFI)
-  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
 //Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED);
+  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #else // ESP32
 //Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, GFX_NOT_DEFINED);

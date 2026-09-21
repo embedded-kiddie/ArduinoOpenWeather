@@ -67,7 +67,7 @@
 #define TFT_MISO      MISO  // 12
 #define TFT_SCLK      SCK   // 13
 #define TFT_BL        -1    // Connect directly to 3.3V
-#define SPI_FREQUENCY       // Default for UNO R4
+#define SPI_FREQUENCY 4000000 // 4MHz is relatively stable for Arduino UNO R4
 
 #else // ESP32
 

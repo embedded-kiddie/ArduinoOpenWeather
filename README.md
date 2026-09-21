@@ -38,7 +38,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     | **Timezone**          | `NTP_TIMEZONE_OFFSET` (UNO R4 WiFi) or `NTP_TIMEZONE_STRING` (ESP32) |
     | **Screen Rotation**   | `TFT_ROTATION` (0,2: portrait / 1,3: landscape)                      |
     | **SPI GPIO pins**     | `TFT_DC`, `TFT_MISO`, `TFT_MOSI`, ...                                |
-    | **Debug Setting**     | Set `DEBUG` to `true` (default) or `false`                           |
+    | **Debug Setting**     | Set `DEBUG` to `true` or `false` (default)                           |
 
 2. Create your `secrets.h` for WiFi credential and OpenWeather API key:
 
