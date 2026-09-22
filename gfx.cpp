@@ -20,12 +20,21 @@
 #include <Arduino_GFX_Library.h>
 
 #if defined(ARDUINO_UNOR4_WIFI)
-//Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-  Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
+  #if true
+    // 2.4inch SPI Module ILI9341
+    // https://www.lcdwiki.com/2.4inch_SPI_Module_ILI9341_SKU:MSP2402
+    // Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+    Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
+    Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
+  #else
+    // 2.4inch 8bit parallel ILI9341
+    // https://www.lcdwiki.com/2.4inch_Arduino_Display
+    Arduino_DataBus *bus = new Arduino_UNOPAR8();
+    Arduino_GFX *tft = new Arduino_ILI9341(bus, A4, (TFT_ROTATION + 2) & 3);
+  #endif
 #else // ESP32
-//Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 4 lines SPI (slower)
-  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 3 lines SPI (falster)
+//Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 4-wires SPI (slower)
+  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 3-wires SPI (falster)
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #endif
 
