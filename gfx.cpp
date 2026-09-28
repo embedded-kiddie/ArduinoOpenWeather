@@ -1,10 +1,9 @@
-//=============================================================================
+//=====================================================================================
 // GUI for OpenWeather
-//=============================================================================
+//=====================================================================================
 #include <Arduino.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <stdio.h>  // snprintf
+#include <string.h> // strcspn
 
 #include "config.h"
 #include "rtcntp.h"
@@ -13,9 +12,23 @@
 #include "logo.hpp"
 #include "moon.hpp"
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+// Graphics function
+//-------------------------------------------------------------------------------------
+#define GFX(f)    tft->f
+
+//-------------------------------------------------------------------------------------
+// Layout check for debug
+//-------------------------------------------------------------------------------------
+#if   false
+#define GFX_DBG(f)  GFX(f)
+#else
+#define GFX_DBG(f)
+#endif
+
+//-------------------------------------------------------------------------------------
 // GFX Library for Arduino
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 #include <SPI.h>
 #include <Arduino_GFX_Library.h>
 
@@ -34,49 +47,64 @@
   #endif
 #else // ESP32
 //Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 4-wires SPI (slower)
-  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 3-wires SPI (falster)
+  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 3-wires (9-bit) SPI (falster)
   Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #endif
 
-//---------------------------------------------------------------------------------------------
-// Graphics function
-//---------------------------------------------------------------------------------------------
-#define GFX(f)    tft->f
-
-//---------------------------------------------------------------------------------------------
-// Layout check for debug
-//---------------------------------------------------------------------------------------------
-#if   false
-#define GFX_DBG(f)  GFX(f)
-#else
-#define GFX_DBG(f)
-#endif
-
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Fonts and Icons
 // https://fonts.google.com/noto/specimen/Noto+Sans
 // https://github.com/moononournation/ArduinoFreeFontFile
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 #include "fonts/NotoSans/SemiBoldAlphabet7pt7b.h"       // FONT_SMALL
 #include "fonts/NotoSans/SemiBoldItalicNumeric16pt7b.h" // FONT_LARGE
-#include "fonts/Icons/WeatherIcons_Symbols_48pt7b.h"    // ICON_LARGE
-#include "fonts/Icons/WeatherIcons_Symbols_35pt7b.h"    // ICON_SMALL
+#include "fonts/Icons/WeatherIcons_Symbols48pt7b.h"     // ICON_LARGE
+#include "fonts/Icons/WeatherIcons_Symbols35pt7b.h"     // ICON_SMALL
 #include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // ICON_SMALL
 
-#define FONT_SMALL_HEIGHT 12
-#define FONT_SMALL_LINEFD 6
-#define FONT_LARGE_HEIGHT 22
-#define ICON_LARGE_HEIGHT 60
-#define ICON_SMALL_HEIGHT 45
+// Widget color
+#define COLOR_DATE    TFT_WHITE
+#define COLOR_ICON    TFT_WHITE
+#define COLOR_WIND    TFT_GREEN
+#define COLOR_TIME    TFT_YELLOW
+#define COLOR_TEMP    TFT_CYAN
+#define COLOR_TITLE   TFT_ORANGE
+#define COLOR_VALUE   TFT_WHITE
 
-//---------------------------------------------------------------------------------------------
+// Icon color
+// https://github.com/moononournation/Arduino_GFX/blob/master/src/Arduino_GFX.h
+#define ICON_COLOR_SUN      RGB565_LINEN        // RGB565(248, 240, 232)
+#define ICON_COLOR_FOG      RGB565_LIGHTGRAY    // RGB565(208, 212, 208)
+#define ICON_COLOR_RAIN     RGB565_DEEPSKYBLUE  // RGB565(0, 192, 248)
+#define ICON_COLOR_MOON     RGB565_YELLOW       // RGB565(248, 252, 0)
+#define ICON_COLOR_STORM    RGB565_YELLOW       // RGB565(248, 252, 0)
+#define ICON_COLOR_CLOUD    RGB565_WHITE        // RGB565(248, 252, 248)
+#define ICON_COLOR_UNKNOWN  RGB565_RED          // RGB565(248, 0, 0)
+#define ICON_COLOR_MASK     RGB565(0, 0, 1)
+
+// Relative positions in drawing box
+#define FONT_SMALL_HEIGHT   12
+#define FONT_SMALL_LINEFD   6
+#define FONT_LARGE_HEIGHT   22
+#define ICON_LARGE_HEIGHT   60
+#define ICON_SMALL_HEIGHT   45
+#define ICON_LARGE_OFFSET_X (-4)
+#define ICON_LARGE_OFFSET_Y 90
+#define ICON_SMALL_OFFSET_X (-4)
+#define ICON_SMALL_OFFSET_Y 74
+
+// Splash message
+#define SPLASH_MSG_X  8
+#define SPLASH_MSG_Y  (TFT_HEIGHT * 3 / 4)
+
+//-------------------------------------------------------------------------------------
 //　Display the message only on the splash screen at startup
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static bool draw_message = true;
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Initialize Screen and Draw Splash Image
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 void gfxInit(void) {
   // Turn on the backlight
   if (TFT_BL > 0) {
@@ -93,9 +121,9 @@ void gfxInit(void) {
   gfxDrawSplashImage();
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // https://openweather.co.uk/brand_guidelines
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 void gfxDrawSplashImage(void) {
   GFX(fillScreen(TFT_WHITE));
   int16_t X = (GFX(width ()) - OPENWEATHER_LOGO_WIDTH ) / 2;
@@ -124,9 +152,9 @@ void gfxDrawSplashImage(void) {
 #endif
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Draw splash message
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 void gfxDrawMessage(char const *msg, bool newline, int16_t X) {
   // Draw during setup and if it does not exceed one line
   if (draw_message == true) {
@@ -157,16 +185,16 @@ void gfxDrawMessage(char const *msg, bool newline, int16_t X) {
   DBG_EXEC(Serial.print(msg));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Get text cursor X location
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 int16_t gfxGetLastCursorX(void) {
   return GFX(getCursorX());
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Draw Current Time
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 void gfxDrawCurrentTime(void) {
   static time32_t time;
   time32_t now = rtcCurrentTime();
@@ -184,9 +212,9 @@ void gfxDrawCurrentTime(void) {
   }
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Draw Weather Data on the Screen
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 void gfxDrawWeatherData(JsonDocument &doc) {
   // Parse JSON to Weather data
   WeatherData data;
@@ -194,12 +222,11 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   doc.clear();
 
   GFX(fillScreen(TFT_BLACK));
-
-  int16_t X, Y, W, H;
+  int16_t X, Y, W, H; // drawing box
 
 #if (TFT_ROTATION == 0) || (TFT_ROTATION == 2)  // Portrait
   drawUpdateDateTime      (X =  25, Y =   0, W = 190, H = 14, data);  // Update date and time
-  drawWeatherToday        (X =   0, Y =  56, W =  80, H = 88, data);  // Today's weather icon
+  drawWeatherToday        (X =   0, Y =  56, W =  80, H = 94, data);  // Today's weather icon
   drawWeatherDescription  (X = 100, Y =  56, W = 140, H = 14, data);  // Today's weather description
   drawTemperature         (X =  80, Y =  72, W =  80, H = 72, data);  // Today's temperature
   drawWindIconSpeed       (X = 160, Y =  72, W =  80, H = 72, data);  // Wind icon and speed
@@ -209,7 +236,7 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   drawWeatherForcast      (X =   0, Y = 158, W =  60, H = 82, data);  // 4 days weather forecast
 #else // Landscape
   drawUpdateDateTime      (X =   2, Y =   0, W = 190, H = 14, data);  // Update date and time
-  drawWeatherToday        (X =   0, Y =  58, W =  80, H = 88, data);  // Today's weather icon
+  drawWeatherToday        (X =   0, Y =  58, W =  80, H = 94, data);  // Today's weather icon
   drawWeatherDescription  (X = 100, Y =  58, W = 220, H = 14, data);  // Today's weather description
   drawTemperature         (X =  85, Y =  72, W =  80, H = 70, data);  // Today's temperature
   drawWindIconSpeed       (X = 170, Y =  72, W =  80, H = 70, data);  // Wind icon and speed
@@ -223,9 +250,9 @@ void gfxDrawWeatherData(JsonDocument &doc) {
   draw_message = false;
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Update Date and Time
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawUpdateDateTime(int X, int Y, int W, int H, WeatherData &data) {
   char buf[32];
   snprintf(buf, sizeof(buf), "Updated: %s", rtcStringDate(data.time).c_str());
@@ -236,31 +263,56 @@ static void drawUpdateDateTime(int X, int Y, int W, int H, WeatherData &data) {
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Today's Day of Week and Weather Icon
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
   struct tm tm;
   time_t T = (time_t)data.time;
   localtime_r(&T, &tm);
 
+  // Day of week
   GFX(setTextColor(COLOR_TITLE));
   GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
   drawStringCenter(X, Y, W, H, rtcGetDayOfWeek(tm.tm_wday));
 
-  uint32_t t = tm.tm_hour * 60 + tm.tm_min;
-  char const *icon = getWeatherIcon(data.weather[0].id, (data.sunrise <= t && t < data.sunset));
+  // Minimum / maximum temperature (includes ​​from 0:00 to 3:00 the following day)
+  int tmin = 999, tmax = -999;
+  for (int i = 0, j = findNextDay(data, 0); i <= j; i++) {
+    if (tmin > data.weather[i].temp) { tmin = data.weather[i].temp; }
+    if (tmax < data.weather[i].temp) { tmax = data.weather[i].temp; }
+  }
 
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%d!/%d!", SCALE_DIV(int, tmax, 10), SCALE_DIV(int, tmin, 10));
+  GFX(setTextColor(COLOR_VALUE));
+  drawStringCenter(X, Y + (FONT_SMALL_HEIGHT + FONT_SMALL_LINEFD), W, H, buf);
+
+  // Weather icon
+  uint32_t t = tm.tm_hour * 60 + tm.tm_min;
+  bool day = (data.sunrise <= t && t < data.sunset);
+  GFX(setFont(&WeatherIcons_Symbols48pt7b));
+
+#if USE_COLOR_ICON
+  buf[1] = '\0';
+  const IconPack *pack = getWeatherIcon(data.weather[0].id, day);
+  do {
+    GFX(setTextColor(pack->color));
+    buf[0] = pack->code;
+    drawStringCenter(X + ICON_LARGE_OFFSET_X, Y + ICON_LARGE_OFFSET_Y, W, 0, buf);
+  } while (pack->next && ++pack);
+#else
+  char const *icon = getWeatherIcon(data.weather[0].id, day);
   GFX(setTextColor(COLOR_ICON));
-  GFX(setFont(&WeatherIcons_Symbols_48pt7b));
-  drawStringCenter(X, Y + 78, W, 0, icon);
+  drawStringCenter(X + ICON_LARGE_OFFSET_X, Y + ICON_LARGE_OFFSET_Y, W, 0, icon);
+#endif
 
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Today's Weather Description
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawWeatherDescription(int X, int Y, int W, int H, WeatherData &data) {
   GFX(setTextColor(COLOR_VALUE));
   GFX(setFont(&NotoSans_SemiBoldAlphabet7pt7b));
@@ -269,9 +321,9 @@ static void drawWeatherDescription(int X, int Y, int W, int H, WeatherData &data
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Today's Temperature 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawTemperature(int X, int Y, int W, int H, WeatherData &data) {
   char buf[16];
   snprintf(buf, sizeof(buf), "% 5.1f", SCALE_MUL(float, data.weather[0].temp, 0.1f));
@@ -290,14 +342,14 @@ static void drawTemperature(int X, int Y, int W, int H, WeatherData &data) {
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Wind Icon and Wind Speed 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawWindIconSpeed(int X, int Y, int W, int H, WeatherData &data) {
   char const *icon = getWeatherWind(data.weather[0].wind_deg);
   GFX(setTextColor(COLOR_WIND));
   GFX(setFont(&WeatherIcons_Arrows30pt7b));
-  drawStringCenter(X, Y + 6, W, H, icon);
+  drawStringCenter(X, Y + FONT_SMALL_LINEFD, W, H, icon);
 
   char buf[16];
   snprintf(buf, sizeof(buf), "%4.1f m/s", SCALE_MUL(float, data.weather[0].wind_speed, 0.1f));
@@ -308,9 +360,9 @@ static void drawWindIconSpeed(int X, int Y, int W, int H, WeatherData &data) {
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Weather Forecast for 4 days 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
   char buf[16];
   const int n = data.n_weather;
@@ -326,27 +378,39 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
       if (tmax < data.weather[j].temp) { tmax = data.weather[j].temp; }
     }
 
-    snprintf(buf, sizeof(buf), "%d!/%d!", SCALE_DIV(int, tmin, 10), SCALE_DIV(int, tmax, 10));
+    snprintf(buf, sizeof(buf), "%d!/%d!", SCALE_DIV(int, tmax, 10), SCALE_DIV(int, tmin, 10));
     GFX(setTextColor(COLOR_VALUE));
     drawStringCenter(X, Y + (FONT_SMALL_HEIGHT + FONT_SMALL_LINEFD), W, H, buf);
 
     // Display the weather icon at intermediate time (i + 4).
     struct tm tm;
     rtcConvtLocalTime(data.weather[i + 4].time, &tm);
-    uint32_t t = tm.tm_hour * 60 + tm.tm_min;
 
-    const char *icon = getWeatherIcon(data.weather[i + 4].id, (data.sunrise <= t && t <= data.sunset));
+    uint32_t t = tm.tm_hour * 60 + tm.tm_min;
+    bool day = (data.sunrise <= t && t < data.sunset);
+    GFX(setFont(&WeatherIcons_Symbols35pt7b));
+
+#if USE_COLOR_ICON
+  buf[1] = '\0';
+  const IconPack *pack = getWeatherIcon(data.weather[i + 4].id, day);
+  do {
+    GFX(setTextColor(pack->color));
+    buf[0] = pack->code;
+    drawStringCenter(X + ICON_SMALL_OFFSET_X, Y + ICON_SMALL_OFFSET_Y, W, 0, buf);
+  } while (pack->next && ++pack);
+#else
+    const char *icon = getWeatherIcon(data.weather[i + 4].id, day);
     GFX(setTextColor(COLOR_ICON));
-    GFX(setFont(&WeatherIcons_Symbols_35pt7b));
-    drawStringCenter(X - 5, Y + 78, W, 0, icon);
+    drawStringCenter(X + ICON_SMALL_OFFSET_X, Y + ICON_SMALL_OFFSET_Y, W, 0, icon);
+#endif
 
     GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
   }
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Sunrise, Sunset
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void darwSunriseSunset(int X, int Y, int W, int H, WeatherData &data) {
 #if (TFT_ROTATION == 0) || (TFT_ROTATION == 2)  // Portrait
   char buf[16];
@@ -380,9 +444,9 @@ static void darwSunriseSunset(int X, int Y, int W, int H, WeatherData &data) {
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Moon Phase
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawMoonPhase(int X, int Y, int W, int H, WeatherData &data) {
   struct tm tm;
   time_t t = (time_t)data.time;
@@ -407,9 +471,9 @@ static void drawMoonPhase(int X, int Y, int W, int H, WeatherData &data) {
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Cloudiness, Air pressure
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawWeatherCondition(int X, int Y, int W, int H, WeatherData &data) {
 #if (TFT_ROTATION == 0) || (TFT_ROTATION == 2)  // Portrait
   int y = 0;
@@ -437,9 +501,9 @@ static void drawWeatherCondition(int X, int Y, int W, int H, WeatherData &data) 
   GFX_DBG(drawRect(X, Y, W, H, TFT_BLUE));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Draw string text be center aligned
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const char *str) {
   int16_t x, y;
   uint16_t w, h;
@@ -449,9 +513,9 @@ static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const c
   GFX(print(str));
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // Search for the first array element of the next day
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static int findNextDay(WeatherData &data, int n) {
   struct tm today;
   time_t T = (time_t)data.time;
@@ -468,44 +532,159 @@ static int findNextDay(WeatherData &data, int n) {
   return -1;
 }
 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 // 
-//---------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 static const char *getWeatherWind(uint8_t deg) {
   static const char *wind[] = {"0", "1", "2", "3", "4", "5", "6", "7"};
   return wind[deg % 8];
 }
 
-//---------------------------------------------------------------------------------------------
-//
-//---------------------------------------------------------------------------------------------
-static const char *getWeatherIcon(uint16_t weather_id, bool day) {
+//-------------------------------------------------------------------------------------
+// https://openweathermap.org/api/weather-conditions
+//-------------------------------------------------------------------------------------
+#if USE_COLOR_ICON
+static const IconPack *getWeatherIcon(uint16_t weather_id, bool day) {
   switch (weather_id / 100) {
-    case 2: return "H"; // thunderstorm
-    case 3: return "F"; // drizzle
-    case 5: switch (weather_id) {
-      case 500: return "F"; // light rain
-      case 501: return "J"; // moderate rain
-      case 511: return "L"; // freezing rain
-      default : return "K"; // rain
+    case 2: {
+      static constexpr IconPack pack[] = {
+        { ICON_COLOR_CLOUD, 'M', true  },
+        { ICON_COLOR_STORM, 'S', false },
+      };
+      return pack; // "K" (thunderstorm)
+    }
+    case 3: {
+      static constexpr IconPack pack[] = {
+        { ICON_COLOR_CLOUD, 'M', true  },
+        { ICON_COLOR_RAIN,  'N', false },
+      };
+      return pack; // "F" (drizzle)
+    }
+    case 5: {
+      switch (weather_id) {
+        case 500: {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_CLOUD, 'M', true  },
+            { ICON_COLOR_RAIN,  'N', false },
+          };
+          return pack; // "F" (drizzle)
+        }
+        case 501: {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_CLOUD, 'M', true  },
+            { ICON_COLOR_RAIN,  'O', false },
+          };
+          return pack; // "G" (moderate rain)
+        }
+        case 511: {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_CLOUD, 'Q', true  },
+            { ICON_COLOR_RAIN,  'R', false },
+          };
+          return pack; // "J" (freezing rain)
+        }
+        default : {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_CLOUD, 'M', true  },
+            { ICON_COLOR_RAIN,  'P', false },
+          };
+          return pack; // "H" (rain)
+        }
+      }
     }
     case 6:
-      if (611 <= weather_id && weather_id <= 616) return "L"; // sleet
-      return "G"; // snow
-    case 7: return "B"; // fog
+      if (611 <= weather_id && weather_id <= 616) {
+        static constexpr IconPack pack[] = {
+          { ICON_COLOR_CLOUD, 'Q', true  },
+          { ICON_COLOR_RAIN,  'R', false },
+        };
+        return pack; // "J" (sleet)
+      } else {
+        static constexpr IconPack pack[] = {
+          { ICON_COLOR_CLOUD, 'I', false },
+        };
+        return pack; // "I" (snow)
+      }
+    case 7: {
+      static constexpr IconPack pack[] = {
+        { ICON_COLOR_CLOUD, 'M', true  },
+        { ICON_COLOR_FOG,   'T', false },
+      };
+      return pack; // "L" (fog)
+    }
     case 8: {
-      if (weather_id == 800) return (day ? "I" /* clear day         */ : "C" /* clear night         */);
-      if (weather_id == 801) return (day ? "E" /* partly cloudy day */ : "D" /* partly cloudy night */);
-      return "A"; // cloudy
+      if (weather_id == 800) {
+        if (day) {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_SUN, 'A', false },
+          };
+          return pack; // "A" (clear day)
+        } else {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_MOON, 'B', false },
+          };
+          return pack; // "B" (clear night)
+        }
+      } else if (weather_id == 801) {
+        if (day) {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_SUN,   'U', true  },
+            { ICON_COLOR_MASK,  'W', true  },
+            { ICON_COLOR_CLOUD, 'X', false },
+          };
+          return pack; // "C" (partly cloudy day)
+        } else {
+          static constexpr IconPack pack[] = {
+            { ICON_COLOR_MOON,  'V', true  },
+            { ICON_COLOR_MASK,  'W', true  },
+            { ICON_COLOR_CLOUD, 'X', false },
+          };
+          return pack; // "D" (partly cloudy night)
+        }
+      } else {
+        static constexpr IconPack pack[] = {
+          { ICON_COLOR_CLOUD, 'E', false },
+        };
+        return pack; // "E" (cloudy)
+      }
     }
   }
 
-  return "Z"; // unknown
+  static constexpr IconPack pack[] = {
+    { ICON_COLOR_CLOUD,   'M', true  },
+    { ICON_COLOR_UNKNOWN, 'Z', false }
+  };
+  return pack; // "?" (unknown)
 }
+#else
+static const char *getWeatherIcon(uint16_t weather_id, bool day) {
+  switch (weather_id / 100) {
+    case 2: return "K"; // thunderstorm
+    case 3: return "F"; // drizzle
+    case 5: switch (weather_id) {
+      case 500: return "F"; // light rain
+      case 501: return "G"; // moderate rain
+      case 511: return "J"; // freezing rain
+      default : return "H"; // rain
+    }
+    case 6:
+      if (611 <= weather_id && weather_id <= 616) return "J"; // sleet
+      return "I"; // snow
+    case 7: return "L"; // fog
+    case 8: {
+      if (weather_id == 800) return (day ? "A" /* clear day         */ : "B" /* clear night         */);
+      if (weather_id == 801) return (day ? "C" /* partly cloudy day */ : "D" /* partly cloudy night */);
+      return "E"; // cloudy
+    }
+  }
 
-//---------------------------------------------------------------------------------------------
-//
-//---------------------------------------------------------------------------------------------
+  return "?"; // unknown
+}
+#endif // USE_COLOR_ICON
+
+//-------------------------------------------------------------------------------------
+// https://openweathermap.org/api/weather-conditions
+//-------------------------------------------------------------------------------------
 static const char *getWeatherDescription(uint16_t weather_id) {
   switch (weather_id / 100) {
     case 2: return "Thunderstorm";

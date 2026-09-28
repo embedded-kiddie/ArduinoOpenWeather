@@ -11,7 +11,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 ## Software Requirements
 
 ### Libraries
-- [moononournation/Arduino_GFX][3] v1.6.7
+- [moononournation/Arduino_GFX][3] v1.6.8
 - [ArduinoJson][4] 7.4.3
 
 ### UNO R4 WiFi
@@ -26,7 +26,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 | Package        | Version                                |
 | -------------- | -------------------------------------- |
-| Board Platform | [esp32 by Espressif Systems][8] 3.3.11 |
+| Board Platform | [esp32 by Espressif Systems][8] 3.3.12 |
 
 ## Software Configuration
 
@@ -69,6 +69,8 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     #endif
     ```
 
+  ![ILI9341 for CYD and UNO R4 WiFi](assets/CYD_UNOR4WiFi.jpg)
+
 4. Open [`rtcntp.cpp`][11] and configure nearby NTP servers:
 
     ```c++
@@ -95,7 +97,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 - [x] Fix the day of the week from 21:00 through midnight.
 - [x] Display progress on the opening splash screen.
-- [ ] Make weather icons multi-colorizing.
+- [x] Make weather icons multi-colorizing.
 - [x] Make lunar phase images reverse for the Northern and Southern Hemispheres.
 - [x] Verify Daylight Saving Time by `timezone` returned from OpenWeather.
 - [x] Supress debug printing to the Serial Monitor.

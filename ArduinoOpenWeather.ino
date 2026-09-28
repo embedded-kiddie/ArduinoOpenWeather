@@ -11,15 +11,15 @@
 //    RTC at version 1.0
 //    NTPClient at version 3.2.1
 //    ArduinoJson at version 7.4.3
-//    GFX Library for Arduino at version 1.6.7
-//  ESP32 (3.3.11):
-//    WiFi at version 3.3.11
-//    Networking at version 3.3.11
-//    NetworkClientSecure at version 3.3.11
-//    SPI at version 3.3.11
-//    Wire at version 3.3.11
+//    GFX Library for Arduino at version 1.6.8
+//  ESP32 (3.3.12):
+//    WiFi at version 3.3.12
+//    Networking at version 3.3.12
+//    NetworkClientSecure at version 3.3.12
+//    SPI at version 3.3.12
+//    Wire at version 3.3.12
 //    ArduinoJson at version 7.4.3
-//    GFX Library for Arduino at version 1.6.7
+//    GFX Library for Arduino at version 1.6.8
 //=====================================================================================
 #include "config.h"
 #include "rtcntp.h"
@@ -33,8 +33,10 @@
 static OpenWeather weather;
 
 void setup() {
-  Serial.begin(115200);
-  while (!Serial || millis() < 1000);
+  DBG_EXEC({
+    Serial.begin(115200);
+    while (!Serial || millis() < 1000);
+  });
 
   gfxInit();
   wifiInit();

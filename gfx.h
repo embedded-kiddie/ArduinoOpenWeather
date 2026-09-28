@@ -1,6 +1,6 @@
-//=============================================================================
+//=====================================================================================
 // GUI for OpenWeather
-//=============================================================================
+//=====================================================================================
 #pragma once
 
 #include "config.h"
@@ -11,29 +11,30 @@
 #define TFT_HEIGHT    (TFT_ROTATION & 1 ? 240 : 320)
 
 // Color definitions
-#define TFT_BLACK     0x0000  //   0,   0,   0
-#define TFT_BLUE      0x001F  //   0,   0, 255
-#define TFT_RED       0xF800  // 255,   0,   0
-#define TFT_GREEN     0x07E0  //   0, 255,   0
-#define TFT_CYAN      0x07FF  //   0, 255, 255
-#define TFT_MAGENTA   0xF81F  // 255,   0, 255
-#define TFT_YELLOW    0xFFE0  // 255, 255,   0
-#define TFT_WHITE     0xFFFF  // 255, 255, 255
-#define TFT_ORANGE    0xFDA0  // 255, 180,   0
-#define TFT_LIGHTGREY 0xD69A  // 211, 211, 211
+#define TFT_BLACK     RGB565(  0,   0,   0) // 0x0000
+#define TFT_BLUE      RGB565(  0,   0, 255) // 0x001F
+#define TFT_RED       RGB565(255,   0,   0) // 0xF800
+#define TFT_GREEN     RGB565(  0, 255,   0) // 0x07E0
+#define TFT_CYAN      RGB565(  0, 255, 255) // 0x07FF
+#define TFT_MAGENTA   RGB565(255,   0, 255) // 0xF81F
+#define TFT_YELLOW    RGB565(255, 255,   0) // 0xFFE0
+#define TFT_WHITE     RGB565(255, 255, 255) // 0xFFFF
+#define TFT_ORANGE    RGB565(255, 180,   0) // 0xFDA0
+#define TFT_LIGHTGREY RGB565(211, 211, 211) // 0xD69A
 
-// Widget color
-#define COLOR_DATE    TFT_WHITE
-#define COLOR_ICON    TFT_WHITE
-#define COLOR_WIND    TFT_GREEN
-#define COLOR_TIME    TFT_YELLOW
-#define COLOR_TEMP    TFT_CYAN
-#define COLOR_TITLE   TFT_ORANGE
-#define COLOR_VALUE   TFT_WHITE
+// Color icon
+#define USE_COLOR_ICON  true
 
-// Splash message
-#define SPLASH_MSG_X  8
-#define SPLASH_MSG_Y  (TFT_HEIGHT * 3 / 4)
+#if USE_COLOR_ICON
+  typedef struct {
+    uint16_t    color;
+    const char  code;
+    bool        next;
+  } IconPack;
+  static const IconPack *getWeatherIcon(uint16_t weather_id, bool day);
+#else
+  static const char *getWeatherIcon(uint16_t weather_id, bool day);
+#endif
 
 // Public
 void gfxInit(void);
@@ -56,7 +57,6 @@ static void drawWeatherCondition    (int X, int Y, int W, int H, WeatherData &da
 static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const char *str);
 static int  findNextDay(WeatherData &data, int n);
 static const char *getWeatherWind(uint8_t deg);
-static const char *getWeatherIcon(uint16_t weather_id, bool day);
 static const char *getWeatherDescription(uint16_t weather_id);
 static void parseWeatherData(JsonDocument &doc, WeatherData &data);
 static void printWeatherData(WeatherData &data);

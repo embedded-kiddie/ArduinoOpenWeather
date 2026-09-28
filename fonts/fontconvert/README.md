@@ -29,5 +29,5 @@ The font files only inculded 13 charaters, ASCII code **46, 47 ('.', '/')**, 48-
 
 ## Icon Font
 
-- Weather icons: ASCII code from 65 ('A') to 79 ('Y')
+- Weather icons: ASCII code from 63 ('?') to 90 ('Z')
 - Wind icon: ASCII code from 48 ('0') to 55 ('7')

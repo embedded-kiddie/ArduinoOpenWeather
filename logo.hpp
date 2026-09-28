@@ -1,8 +1,8 @@
-//=============================================================================
+//=====================================================================================
 // OpenWeather Logo image (RGB565 INDEXED)
 // Original image: https://openweather.co.uk/brand_guidelines
 // GIMP: Change mode to 8bit index color and export as a C source code header
-//=============================================================================
+//=====================================================================================
 #pragma once
 
 #define OPENWEATHER_LOGO_WIDTH   175
