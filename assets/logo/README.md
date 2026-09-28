@@ -11,7 +11,7 @@
 
 ### input.h
 ```c++
-/*  GIMP header image file format (INDEXED): /Users/name/Documents/Arduino/Arduino-UNO-R4/ILI9341/sample.h  */
+/*  GIMP header image file format (INDEXED): input.h  */
 
 static unsigned int width = 180;
 static unsigned int height = 80;
@@ -56,7 +56,6 @@ static const uint8_t input[] = {
   ...
   0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE
 };
-
 #endif
 ```
 
