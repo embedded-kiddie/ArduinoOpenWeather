@@ -22,16 +22,23 @@
 #define TFT_ORANGE    RGB565(255, 180,   0) // 0xFDA0
 #define TFT_LIGHTGREY RGB565(211, 211, 211) // 0xD69A
 
-// Color icon
-#define USE_COLOR_ICON  true
+// Splash logo
+#define SPLASH_LOGO_RGB565  0
+#define SPLASH_LOGO_INDEX   1
+#define SPLASH_LOGO_TYPE    SPLASH_LOGO_INDEX
 
-#if USE_COLOR_ICON
+// Weather icon
+#define WEATHER_ICON_MONO   0
+#define WEATHER_ICON_COLOR  1
+#define WEATHER_ICON_TYPE   WEATHER_ICON_COLOR
+
+#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
   typedef struct {
     uint16_t    color;
     const char  code;
     bool        next;
-  } IconPack;
-  static const IconPack *getWeatherIcon(uint16_t weather_id, bool day);
+  } IconOverlay;
+  static const IconOverlay *getWeatherIcon(uint16_t weather_id, bool day);
 #else
   static const char *getWeatherIcon(uint16_t weather_id, bool day);
 #endif
@@ -55,7 +62,7 @@ static void darwSunriseSunset       (int X, int Y, int W, int H, WeatherData &da
 static void drawMoonPhase           (int X, int Y, int W, int H, WeatherData &data);
 static void drawWeatherCondition    (int X, int Y, int W, int H, WeatherData &data);
 static void drawStringCenter(int16_t X, int16_t Y, int16_t W, int16_t H, const char *str);
-static int  findNextDay(WeatherData &data, int n);
+static int findNextDay(WeatherData &data, int n);
 static const char *getWeatherWind(uint8_t deg);
 static const char *getWeatherDescription(uint16_t weather_id);
 static void parseWeatherData(JsonDocument &doc, WeatherData &data);

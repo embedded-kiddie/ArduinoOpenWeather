@@ -11,7 +11,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 ## Software Requirements
 
 ### Libraries
-- [moononournation/Arduino_GFX][3] v1.6.8
+- [moononournation/Arduino_GFX][3] v1.6.9
 - [ArduinoJson][4] 7.4.3
 
 ### UNO R4 WiFi
@@ -53,8 +53,9 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     ```c++
     #if defined(ARDUINO_UNOR4_WIFI)
       #if true
-        // 2.4inch SPI Module ILI9341
+        // 2.4/2.8inch SPI Module ILI9341
         // https://www.lcdwiki.com/2.4inch_SPI_Module_ILI9341_SKU:MSP2402
+        // https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
         Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
         Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
       #else

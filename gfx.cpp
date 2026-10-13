@@ -34,8 +34,9 @@
 
 #if defined(ARDUINO_UNOR4_WIFI)
   #if true
-    // 2.4inch SPI Module ILI9341
+    // 2.4/2.8inch SPI Module ILI9341
     // https://www.lcdwiki.com/2.4inch_SPI_Module_ILI9341_SKU:MSP2402
+    // https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
     // Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
     Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
     Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
@@ -129,14 +130,14 @@ void gfxDrawSplashImage(void) {
   int16_t X = (GFX(width ()) - OPENWEATHER_LOGO_WIDTH ) / 2;
   int16_t Y = (GFX(height()) - OPENWEATHER_LOGO_HEIGHT) / 3;
 
-#ifdef  OPENWEATHER_LOGO_16bitRGBBitmap
+#if (SPLASH_LOGO_TYPE == SPLASH_LOGO_RGB565)
   GFX(draw16bitRGBBitmap(X, Y,
     OpenWeatherLogo1, OPENWEATHER_LOGO1_WIDTH, OPENWEATHER_LOGO1_HEIGHT
   ));
   GFX(draw16bitRGBBitmap(X, Y + OPENWEATHER_LOGO1_HEIGHT,
     OpenWeatherLogo2, OPENWEATHER_LOGO2_WIDTH, OPENWEATHER_LOGO2_HEIGHT
   ));
-#else // OPENWEATHER_LOGO_IndexedBitmap
+#else // (SPLASH_LOGO_TYPE == SPLASH_LOGO_INDEX)
   GFX(drawIndexedBitmap(
     X, Y,
     const_cast<uint8_t  *>(OpenWeatherLogo1_IndexedImage),  // Indexed Image
@@ -293,14 +294,14 @@ static void drawWeatherToday(int X, int Y, int W, int H, WeatherData &data) {
   bool day = (data.sunrise <= t && t < data.sunset);
   GFX(setFont(&WeatherIcons_Symbols48pt7b));
 
-#if USE_COLOR_ICON
+#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
   buf[1] = '\0';
-  const IconPack *pack = getWeatherIcon(data.weather[0].id, day);
+  const IconOverlay *icon = getWeatherIcon(data.weather[0].id, day);
   do {
-    GFX(setTextColor(pack->color));
-    buf[0] = pack->code;
+    GFX(setTextColor(icon->color));
+    buf[0] = icon->code;
     drawStringCenter(X + ICON_LARGE_OFFSET_X, Y + ICON_LARGE_OFFSET_Y, W, 0, buf);
-  } while (pack->next && ++pack);
+  } while (icon->next && ++icon);
 #else
   char const *icon = getWeatherIcon(data.weather[0].id, day);
   GFX(setTextColor(COLOR_ICON));
@@ -390,14 +391,14 @@ static void drawWeatherForcast(int X, int Y, int W, int H, WeatherData &data) {
     bool day = (data.sunrise <= t && t < data.sunset);
     GFX(setFont(&WeatherIcons_Symbols35pt7b));
 
-#if USE_COLOR_ICON
+#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
   buf[1] = '\0';
-  const IconPack *pack = getWeatherIcon(data.weather[i + 4].id, day);
+  const IconOverlay *icon = getWeatherIcon(data.weather[i + 4].id, day);
   do {
-    GFX(setTextColor(pack->color));
-    buf[0] = pack->code;
+    GFX(setTextColor(icon->color));
+    buf[0] = icon->code;
     drawStringCenter(X + ICON_SMALL_OFFSET_X, Y + ICON_SMALL_OFFSET_Y, W, 0, buf);
-  } while (pack->next && ++pack);
+  } while (icon->next && ++icon);
 #else
     const char *icon = getWeatherIcon(data.weather[i + 4].id, day);
     GFX(setTextColor(COLOR_ICON));
@@ -543,120 +544,120 @@ static const char *getWeatherWind(uint8_t deg) {
 //-------------------------------------------------------------------------------------
 // https://openweathermap.org/api/weather-conditions
 //-------------------------------------------------------------------------------------
-#if USE_COLOR_ICON
-static const IconPack *getWeatherIcon(uint16_t weather_id, bool day) {
+#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
+static const IconOverlay *getWeatherIcon(uint16_t weather_id, bool day) {
   switch (weather_id / 100) {
     case 2: {
-      static constexpr IconPack pack[] = {
+      static constexpr IconOverlay icon[] = {
         { ICON_COLOR_CLOUD, 'M', true  },
         { ICON_COLOR_STORM, 'S', false },
       };
-      return pack; // "K" (thunderstorm)
+      return icon; // "K" (thunderstorm)
     }
     case 3: {
-      static constexpr IconPack pack[] = {
+      static constexpr IconOverlay icon[] = {
         { ICON_COLOR_CLOUD, 'M', true  },
         { ICON_COLOR_RAIN,  'N', false },
       };
-      return pack; // "F" (drizzle)
+      return icon; // "F" (drizzle)
     }
     case 5: {
       switch (weather_id) {
         case 500: {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_CLOUD, 'M', true  },
             { ICON_COLOR_RAIN,  'N', false },
           };
-          return pack; // "F" (drizzle)
+          return icon; // "F" (drizzle)
         }
         case 501: {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_CLOUD, 'M', true  },
             { ICON_COLOR_RAIN,  'O', false },
           };
-          return pack; // "G" (moderate rain)
+          return icon; // "G" (moderate rain)
         }
         case 511: {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_CLOUD, 'Q', true  },
             { ICON_COLOR_RAIN,  'R', false },
           };
-          return pack; // "J" (freezing rain)
+          return icon; // "J" (freezing rain)
         }
         default : {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_CLOUD, 'M', true  },
             { ICON_COLOR_RAIN,  'P', false },
           };
-          return pack; // "H" (rain)
+          return icon; // "H" (rain)
         }
       }
     }
     case 6:
       if (611 <= weather_id && weather_id <= 616) {
-        static constexpr IconPack pack[] = {
+        static constexpr IconOverlay icon[] = {
           { ICON_COLOR_CLOUD, 'Q', true  },
           { ICON_COLOR_RAIN,  'R', false },
         };
-        return pack; // "J" (sleet)
+        return icon; // "J" (sleet)
       } else {
-        static constexpr IconPack pack[] = {
+        static constexpr IconOverlay icon[] = {
           { ICON_COLOR_CLOUD, 'I', false },
         };
-        return pack; // "I" (snow)
+        return icon; // "I" (snow)
       }
     case 7: {
-      static constexpr IconPack pack[] = {
+      static constexpr IconOverlay icon[] = {
         { ICON_COLOR_CLOUD, 'M', true  },
         { ICON_COLOR_FOG,   'T', false },
       };
-      return pack; // "L" (fog)
+      return icon; // "L" (fog)
     }
     case 8: {
       if (weather_id == 800) {
         if (day) {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_SUN, 'A', false },
           };
-          return pack; // "A" (clear day)
+          return icon; // "A" (clear day)
         } else {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_MOON, 'B', false },
           };
-          return pack; // "B" (clear night)
+          return icon; // "B" (clear night)
         }
       } else if (weather_id == 801) {
         if (day) {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_SUN,   'U', true  },
             { ICON_COLOR_MASK,  'W', true  },
             { ICON_COLOR_CLOUD, 'X', false },
           };
-          return pack; // "C" (partly cloudy day)
+          return icon; // "C" (partly cloudy day)
         } else {
-          static constexpr IconPack pack[] = {
+          static constexpr IconOverlay icon[] = {
             { ICON_COLOR_MOON,  'V', true  },
             { ICON_COLOR_MASK,  'W', true  },
             { ICON_COLOR_CLOUD, 'X', false },
           };
-          return pack; // "D" (partly cloudy night)
+          return icon; // "D" (partly cloudy night)
         }
       } else {
-        static constexpr IconPack pack[] = {
+        static constexpr IconOverlay icon[] = {
           { ICON_COLOR_CLOUD, 'E', false },
         };
-        return pack; // "E" (cloudy)
+        return icon; // "E" (cloudy)
       }
     }
   }
 
-  static constexpr IconPack pack[] = {
+  static constexpr IconOverlay icon[] = {
     { ICON_COLOR_CLOUD,   'M', true  },
     { ICON_COLOR_UNKNOWN, 'Z', false }
   };
-  return pack; // "?" (unknown)
+  return icon; // "?" (unknown)
 }
-#else
+#else // (WEATHER_ICON_TYPE == WEATHER_ICON_MONO)
 static const char *getWeatherIcon(uint16_t weather_id, bool day) {
   switch (weather_id / 100) {
     case 2: return "K"; // thunderstorm
@@ -680,7 +681,7 @@ static const char *getWeatherIcon(uint16_t weather_id, bool day) {
 
   return "?"; // unknown
 }
-#endif // USE_COLOR_ICON
+#endif // WEATHER_ICON_TYPE
 
 //-------------------------------------------------------------------------------------
 // https://openweathermap.org/api/weather-conditions
