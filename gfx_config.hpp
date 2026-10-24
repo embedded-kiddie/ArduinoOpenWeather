@@ -64,6 +64,11 @@
   #endif
 #endif
 
+//-------------------------------------------------------------------------------------
+// Arduino GFX
+//-------------------------------------------------------------------------------------
+#include <Arduino_GFX_Library.h>
+
 //-----------------------------------------------------------------
 // Initial Operation
 // Fix color misregistration compared to Adafruit GFX
@@ -73,13 +78,13 @@
   // Library default configuration
   #define GFX_CONFIG(bus, rst, rot) bus, rst, rot
 
-#elif (USE_TFT_DRIVER == 9341)
+#elif (USE_TFT_DRIVER == 9341) || (USE_TFT_DRIVER == 93410)
   #define GFX_CONFIG(bus, rst, rot) bus, rst, rot, \
     false /* ips */, ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, \
     0 /* col offset 1 */,  0 /* row offset 1 */,  0 /* col offset 2 */,  0 /* row offset 2 */, \
     ili9341_type2_init_operations, sizeof(ili9341_type2_init_operations)
 
-#elif (USE_TFT_DRIVER == 7789)
+#elif (USE_TFT_DRIVER == 7789) || (USE_TFT_DRIVER == 77890)
   // The library's default configuration does not produce the correct colors
   #define GFX_CONFIG(bus, rst, rot) bus, rst, rot, \
     false /* ips */, ST7789_TFTWIDTH, ST7789_TFTHEIGHT, \

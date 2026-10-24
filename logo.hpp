@@ -14,7 +14,7 @@
 #define OPENWEATHER_LOGO2_WIDTH  175
 #define OPENWEATHER_LOGO2_HEIGHT  27
 
-#if (USE_OPERATION == 1) || ((USE_TFT_DRIVER != 9341) && (USE_TFT_DRIVER != 7789))
+#if (USE_OPERATION == 1)
 //-------------------------------------------------------------------------------------
 // Index color image (Total size: (512 + 3360) + (512 + 4725) = 9109)
 //-------------------------------------------------------------------------------------

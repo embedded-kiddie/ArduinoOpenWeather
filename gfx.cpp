@@ -19,7 +19,7 @@
 // Configuration
 // 93410 and 77890 are for MCUFRIEND-type LCDs.
 //-------------------------------------------------------------------------------------
-#define USE_TFT_DRIVER  9341  // Select Driver : 9341[0], 7789[0], 9486, 7796
+#define USE_TFT_DRIVER  93410  // Select Driver : 9341[0], 7789[0], 9486, 7796
 #define USE_OPERATION   2     // Init operation: type 1 (default) or type 2 (variant)
 
 #if defined(ARDUINO_ARCH_RENESAS_UNO)
@@ -97,7 +97,7 @@
 #define TFT_ORANGE    RGB565(255, 180,   0) // 0xFDA0
 #define TFT_ORANGERED RGB565(255,  86,   0) // 0xFAA0
 
-#if (USE_OPERATION == 1) || ((USE_TFT_DRIVER != 9341) && (USE_TFT_DRIVER != 7789))
+#if (USE_OPERATION == 1)
   // Widget color
   #define COLOR_DATE    TFT_WHITE
   #define COLOR_ICON    TFT_WHITE

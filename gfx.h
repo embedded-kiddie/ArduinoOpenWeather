@@ -3,7 +3,6 @@
 //=====================================================================================
 #pragma once
 
-#include "config.h"
 #include "OpenWeather.h"
 
 // Public

@@ -70,7 +70,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     #define USE_OPERATION   2     // Init operation: type 1 (default) or type 2 (variant)
     ```
 
-  ![ILI9341 for CYD and UNO R4 WiFi](assets/OpenWeather_UNOR4WiFi_CYD.jpg)
+  ![ILI9341 for CYD and UNO R4 WiFi](assets/OpenWeather_CYD_MCUFRIEND.jpg)
 
 5. Open [`gfx_config.hpp`][12] and check and modify the GPIO pin assignment to suit your device:
 
