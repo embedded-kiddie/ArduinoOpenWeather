@@ -44,47 +44,6 @@
 #endif
 
 //-------------------------------------------------------------------------------------
-// Screen Rotation (0 - 3)
-//-------------------------------------------------------------------------------------
-#if defined(ARDUINO_UNOR4_WIFI)
-#define TFT_ROTATION  3
-#else
-#define TFT_ROTATION  0
-#endif
-
-//-------------------------------------------------------------------------------------
-// SPI GPIO pins configuration for Arduino_GFX by moononournation
-//-------------------------------------------------------------------------------------
-#if defined(ARDUINO_UNOR4_WIFI)
-
-// Arduino UNO R4 WiFi
-// https://github.com/arduino/ArduinoCore-renesas/blob/main/variants/UNOWIFIR4/pins_arduino.h
-// TFT_RST and TFT_DC should be configured based on your wiring
-#define TFT_RST       D8    //  8
-#define TFT_DC        D9    //  9
-#define TFT_CS        CS    // 10
-#define TFT_MOSI      MOSI  // 11
-#define TFT_MISO      MISO  // 12
-#define TFT_SCLK      SCK   // 13
-#define TFT_BL        -1    // Connect directly to 3.3V
-#define SPI_FREQUENCY 24000000 // The maximum is 24MHz for UNO R4 (4MHz is relatively stable)
-
-#else // ESP32
-
-// ESP32-2432S028R (CYD)
-// https://github.com/espressif/arduino-esp32/blob/master/variants/jczn_2432s028r/pins_arduino.h
-#define TFT_RST       -1
-#define TFT_DC        2
-#define TFT_MISO      12
-#define TFT_MOSI      13
-#define TFT_SCLK      14
-#define TFT_CS        15
-#define TFT_BL        21
-#define SPI_FREQUENCY 80000000  // ILI9341 for ESP32 (40MHz or 80MHz)
-
-#endif // ARDUINO_UNOR4_WIFI or ESP32
-
-//-------------------------------------------------------------------------------------
 // Output Serial Monitor for debugging
 //-------------------------------------------------------------------------------------
 #define DEBUG false

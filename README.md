@@ -2,7 +2,7 @@
 
 ## What is this?
 
-![OpenWeather for UNO R4 WiFi](assets/OpenWeather_UNO_R4.jpg)
+![OpenWeather for UNO R4 WiFi](assets/OpenWeather_UNOR4WiFi.jpg)
 
 This is yet another OpenWeather App for UNO R4 WiFi and ESP32.
 
@@ -30,15 +30,12 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
 
 ## Software Configuration
 
-1. Open [`config.h`][9] and and configure the following:
+1. Open [`config.h`][9] and configure the following:
 
     | Item                  | Configuration Parameters                                             |
     | --------------------- | -------------------------------------------------------------------- |
     | **OpenWeather API**   | `LANGUAGE`, `LATITUDE` and `LONGITUDE`                               |
     | **Timezone**          | `NTP_TIMEZONE_OFFSET` (UNO R4 WiFi) or `NTP_TIMEZONE_STRING` (ESP32) |
-    | **Screen Rotation**   | `TFT_ROTATION` (0,2: portrait / 1,3: landscape)                      |
-    | **SPI GPIO pins**     | `TFT_DC`, `TFT_MISO`, `TFT_MOSI`, ...                                |
-    | **Debug Setting**     | Set `DEBUG` to `true` or `false` (default)                           |
 
 2. Create your `secrets.h` for WiFi credential and OpenWeather API key:
 
@@ -48,31 +45,7 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     #define API_KEY     "***** your OpenWeather key *****"
     ```
 
-3. Open [`gfx.cpp`][10] and modify the Arduino_GFX code to suit your LCD device:
-
-    ```c++
-    #if defined(ARDUINO_UNOR4_WIFI)
-      #if true
-        // 2.4/2.8inch SPI Module ILI9341
-        // https://www.lcdwiki.com/2.4inch_SPI_Module_ILI9341_SKU:MSP2402
-        // https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
-        Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-        Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
-      #else
-        // 2.4inch 8bit parallel ILI9341
-        // https://www.lcdwiki.com/2.4inch_Arduino_Display
-        Arduino_DataBus *bus = new Arduino_UNOPAR8();
-        Arduino_GFX *tft = new Arduino_ILI9341(bus, A4, (TFT_ROTATION + 2) & 3);
-      #endif
-    #else // ESP32
-      Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI);
-      Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
-    #endif
-    ```
-
-  ![ILI9341 for CYD and UNO R4 WiFi](assets/CYD_UNOR4WiFi.jpg)
-
-4. Open [`rtcntp.cpp`][11] and configure nearby NTP servers:
+3. Open [`rtcntp.cpp`][10] and configure nearby NTP servers:
 
     ```c++
     static const char *ntpServers[] = {
@@ -86,13 +59,51 @@ Inspired by the cool screen design of [OpenWeahter][1] by [Bodmer, the creator o
     };
     ```
 
-5. Open [OpenWeather.cpp][12] and change the following symbols for experimental feature:
+4. Open [`gfx.cpp`][11] and check and modify the LCD driver IC number to suit your device:
 
-    | Symbol in              | Default           |
-    | ---------------------- | ----------------- |
-    | `USE_SECURE_CLIENT`    | `true`            |
-    | `USE_HTTP_CLIENT`      | `false`           |
-    | `DESERIALIZATION_TYPE` | `TYPE_RAW_STREAM` |
+    ```c++
+    //-------------------------------------------------------------------------------------
+    // Configuration
+    // 93410 and 77890 are for MCUFRIEND-type LCDs.
+    //-------------------------------------------------------------------------------------
+    #define USE_TFT_DRIVER  9341  // Select Driver : 9341[0], 7789[0], 9486, 7796
+    #define USE_OPERATION   2     // Init operation: type 1 (default) or type 2 (variant)
+    ```
+
+  ![ILI9341 for CYD and UNO R4 WiFi](assets/OpenWeather_UNOR4WiFi_CYD.jpg)
+
+5. Open [`gfx_config.hpp`][12] and check and modify the GPIO pin assignment to suit your device:
+
+    ```c++
+    //-------------------------------------------------------------------------------------
+    // SPI GPIO pin assignment
+    //-------------------------------------------------------------------------------------
+    #if defined(ARDUINO_ARCH_RENESAS_UNO) || defined(ARDUINO_ARCH_AVR)
+      // Arduino UNO R4 WiFi
+      // https://github.com/arduino/ArduinoCore-renesas/blob/main/variants/UNOWIFIR4/pins_arduino.h
+      // TFT_RST and TFT_DC should be configured based on your wiring
+      #define TFT_RST       8         // D8
+      #define TFT_DC        9         // D9
+      #define TFT_CS        10        // CS
+      #define TFT_MOSI      MOSI      // 11
+      #define TFT_MISO      MISO      // 12
+      #define TFT_SCLK      SCK       // 13
+      #define TFT_BL        -1        // Connect directly to 3.3V
+      #define SPI_FREQUENCY 24000000  // RA4M1: 24MHz, SPI: 12MHz
+
+    #else  // ESP32
+      // ESP32-2432S028R (CYD)
+      // https://github.com/espressif/arduino-esp32/blob/master/variants/jczn_2432s028r/pins_arduino.h
+      #define TFT_RST       -1
+      #define TFT_DC        2
+      #define TFT_MISO      12
+      #define TFT_MOSI      13
+      #define TFT_SCLK      14
+      #define TFT_CS        15
+      #define TFT_BL        21
+      #define SPI_FREQUENCY 80000000  // ILI9341 for ESP32 (40MHz or 80MHz)
+    #endif
+    ```
 
 ## ToDo List
 
@@ -130,9 +141,9 @@ I would like to express my gratitude to the creators of these cool icon fonts:
 [8]: https://github.com/espressif/arduino-esp32 "espressif/arduino-esp32: Arduino core for the ESP32"
 
 [9]: config.h
-[10]: gfx.cpp#L15-L30
-[11]: rtcntp.cpp#L13-L20
-[12]: OpenWeather.cpp#L13-L22
+[10]: rtcntp.cpp#L14-L22
+[11]: gfx.cpp#L18-L23
+[12]: gfx_config.hpp#L21-L48
 
 [13]: https://github.com/kickstandapps/WeatherIcons "kickstandapps/WeatherIcons: Open-sourced weather icons and font for UI design."
 

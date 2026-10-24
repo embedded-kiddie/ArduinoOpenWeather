@@ -8,14 +8,30 @@
 #include "config.h"
 #include "rtcntp.h"
 #include "OpenWeather.h"
-#include "gfx.h"
-#include "logo.hpp"
-#include "moon.hpp"
 
 //-------------------------------------------------------------------------------------
-// Graphics function
+// GFX Library for Arduino
 //-------------------------------------------------------------------------------------
-#define GFX(f)    tft->f
+#include <SPI.h>
+#include <Arduino_GFX_Library.h>
+
+//-------------------------------------------------------------------------------------
+// Configuration
+// 93410 and 77890 are for MCUFRIEND-type LCDs.
+//-------------------------------------------------------------------------------------
+#define USE_TFT_DRIVER  9341  // Select Driver : 9341[0], 7789[0], 9486, 7796
+#define USE_OPERATION   2     // Init operation: type 1 (default) or type 2 (variant)
+
+#if defined(ARDUINO_ARCH_RENESAS_UNO)
+  #define TFT_ROTATION  3
+#else
+  #define TFT_ROTATION  0
+#endif
+
+#include "gfx.h"
+#include "gfx_config.hpp"
+#include "logo.hpp"
+#include "moon.hpp"
 
 //-------------------------------------------------------------------------------------
 // Layout check for debug
@@ -24,32 +40,6 @@
 #define GFX_DBG(f)  GFX(f)
 #else
 #define GFX_DBG(f)
-#endif
-
-//-------------------------------------------------------------------------------------
-// GFX Library for Arduino
-//-------------------------------------------------------------------------------------
-#include <SPI.h>
-#include <Arduino_GFX_Library.h>
-
-#if defined(ARDUINO_UNOR4_WIFI)
-  #if true
-    // 2.4/2.8inch SPI Module ILI9341
-    // https://www.lcdwiki.com/2.4inch_SPI_Module_ILI9341_SKU:MSP2402
-    // https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
-    // Arduino_DataBus *bus = new Arduino_SWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
-    Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS);
-    Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
-  #else
-    // 2.4inch 8bit parallel ILI9341
-    // https://www.lcdwiki.com/2.4inch_Arduino_Display
-    Arduino_DataBus *bus = new Arduino_UNOPAR8();
-    Arduino_GFX *tft = new Arduino_ILI9341(bus, A4, (TFT_ROTATION + 2) & 3);
-  #endif
-#else // ESP32
-//Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 4-wires SPI (slower)
-  Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, VSPI); // 3-wires (9-bit) SPI (falster)
-  Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST, TFT_ROTATION);
 #endif
 
 //-------------------------------------------------------------------------------------
@@ -62,26 +52,6 @@
 #include "fonts/Icons/WeatherIcons_Symbols48pt7b.h"     // ICON_LARGE
 #include "fonts/Icons/WeatherIcons_Symbols35pt7b.h"     // ICON_SMALL
 #include "fonts/Icons/WeatherIcons_Arrows30pt7b.h"      // ICON_SMALL
-
-// Widget color
-#define COLOR_DATE    TFT_WHITE
-#define COLOR_ICON    TFT_WHITE
-#define COLOR_WIND    TFT_GREEN
-#define COLOR_TIME    TFT_YELLOW
-#define COLOR_TEMP    TFT_CYAN
-#define COLOR_TITLE   TFT_ORANGE
-#define COLOR_VALUE   TFT_WHITE
-
-// Icon color
-// https://github.com/moononournation/Arduino_GFX/blob/master/src/Arduino_GFX.h
-#define ICON_COLOR_SUN      RGB565_LINEN        // RGB565(248, 240, 232)
-#define ICON_COLOR_FOG      RGB565_LIGHTGRAY    // RGB565(208, 212, 208)
-#define ICON_COLOR_RAIN     RGB565_DEEPSKYBLUE  // RGB565(0, 192, 248)
-#define ICON_COLOR_MOON     RGB565_YELLOW       // RGB565(248, 252, 0)
-#define ICON_COLOR_STORM    RGB565_YELLOW       // RGB565(248, 252, 0)
-#define ICON_COLOR_CLOUD    RGB565_WHITE        // RGB565(248, 252, 248)
-#define ICON_COLOR_UNKNOWN  RGB565_RED          // RGB565(248, 0, 0)
-#define ICON_COLOR_MASK     RGB565(0, 0, 1)
 
 // Relative positions in drawing box
 #define FONT_SMALL_HEIGHT   12
@@ -98,6 +68,77 @@
 #define SPLASH_MSG_X  8
 #define SPLASH_MSG_Y  (TFT_HEIGHT * 3 / 4)
 
+// Weather icon
+#define WEATHER_ICON_MONO   0
+#define WEATHER_ICON_COLOR  1
+#define WEATHER_ICON_TYPE   WEATHER_ICON_COLOR
+
+#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
+  typedef struct {
+    uint16_t    color;
+    const char  code;
+    bool        next;
+  } IconOverlay;
+  static const IconOverlay *getWeatherIcon(uint16_t weather_id, bool day);
+#else
+  static const char *getWeatherIcon(uint16_t weather_id, bool day);
+#endif
+
+// Color definitions
+#define TFT_BLACK     RGB565(  0,   0,   0) // 0x0000
+#define TFT_BLUE      RGB565(  0,   0, 255) // 0x001F
+#define TFT_RED       RGB565(255,   0,   0) // 0xF800
+#define TFT_GREEN     RGB565(  0, 255,   0) // 0x07E0
+#define TFT_CYAN      RGB565(  0, 255, 255) // 0x07FF
+#define TFT_MAGENTA   RGB565(255,   0, 255) // 0xF81F
+#define TFT_YELLOW    RGB565(255, 255,   0) // 0xFFE0
+#define TFT_WHITE     RGB565(255, 255, 255) // 0xFFFF
+#define TFT_LIGHTGREY RGB565(211, 211, 211) // 0xD69A
+#define TFT_ORANGE    RGB565(255, 180,   0) // 0xFDA0
+#define TFT_ORANGERED RGB565(255,  86,   0) // 0xFAA0
+
+#if (USE_OPERATION == 1) || ((USE_TFT_DRIVER != 9341) && (USE_TFT_DRIVER != 7789))
+  // Widget color
+  #define COLOR_DATE    TFT_WHITE
+  #define COLOR_ICON    TFT_WHITE
+  #define COLOR_WIND    TFT_GREEN
+  #define COLOR_TIME    TFT_YELLOW
+  #define COLOR_TEMP    TFT_CYAN
+  #define COLOR_TITLE   TFT_ORANGE
+  #define COLOR_VALUE   TFT_WHITE
+
+  // Icon color
+  // https://github.com/moononournation/Arduino_GFX/blob/master/src/Arduino_GFX.h
+  #define ICON_COLOR_SUN      RGB565_LINEN        // RGB565(248, 240, 232)
+  #define ICON_COLOR_FOG      RGB565_LIGHTGRAY    // RGB565(208, 212, 208)
+  #define ICON_COLOR_RAIN     RGB565_DEEPSKYBLUE  // RGB565(  0, 192, 248)
+  #define ICON_COLOR_MOON     RGB565_YELLOW       // RGB565(248, 252,   0)
+  #define ICON_COLOR_STORM    RGB565_YELLOW       // RGB565(248, 252,   0)
+  #define ICON_COLOR_CLOUD    RGB565_WHITE        // RGB565(248, 252, 248)
+  #define ICON_COLOR_UNKNOWN  RGB565_RED          // RGB565(248,   0,   0)
+  #define ICON_COLOR_MASK     RGB565(0, 0, 1)
+#else
+  // Widget color
+  #define COLOR_DATE    TFT_WHITE
+  #define COLOR_ICON    TFT_WHITE
+  #define COLOR_WIND    TFT_GREEN
+  #define COLOR_TIME    TFT_YELLOW
+  #define COLOR_TEMP    TFT_CYAN
+  #define COLOR_TITLE   TFT_ORANGERED
+  #define COLOR_VALUE   TFT_WHITE
+
+  // Icon color
+  // https://www.w3.org/wiki/CSS/Properties/color/keywords
+  #define ICON_COLOR_SUN      RGB565(255, 186,  46) // lightorange
+  #define ICON_COLOR_FOG      RGB565(169, 169, 169) // darkgray
+  #define ICON_COLOR_RAIN     RGB565( 30, 144 ,255) // dodgerblue
+  #define ICON_COLOR_MOON     RGB565(255, 230,   0) // gold
+  #define ICON_COLOR_STORM    RGB565(255, 255,   0) // yellow
+  #define ICON_COLOR_CLOUD    RGB565(248, 248, 255) // ghostwhite
+  #define ICON_COLOR_UNKNOWN  RGB565(255,   0,   0) // red
+  #define ICON_COLOR_MASK     RGB565(  0,   0,   1) // Mask with black
+#endif
+
 //-------------------------------------------------------------------------------------
 //　Display the message only on the splash screen at startup
 //-------------------------------------------------------------------------------------
@@ -107,16 +148,8 @@ static bool draw_message = true;
 // Initialize Screen and Draw Splash Image
 //-------------------------------------------------------------------------------------
 void gfxInit(void) {
-  // Turn on the backlight
-  if (TFT_BL > 0) {
-    pinMode(TFT_BL, OUTPUT);
-    digitalWrite(TFT_BL, HIGH);
-  }
-
   // Initialize LCD
-  while (!GFX(begin(SPI_FREQUENCY))) {
-    delay(100);
-  }
+  gfx_setup();
 
   // Show the logo image
   gfxDrawSplashImage();
@@ -130,14 +163,6 @@ void gfxDrawSplashImage(void) {
   int16_t X = (GFX(width ()) - OPENWEATHER_LOGO_WIDTH ) / 2;
   int16_t Y = (GFX(height()) - OPENWEATHER_LOGO_HEIGHT) / 3;
 
-#if (SPLASH_LOGO_TYPE == SPLASH_LOGO_RGB565)
-  GFX(draw16bitRGBBitmap(X, Y,
-    OpenWeatherLogo1, OPENWEATHER_LOGO1_WIDTH, OPENWEATHER_LOGO1_HEIGHT
-  ));
-  GFX(draw16bitRGBBitmap(X, Y + OPENWEATHER_LOGO1_HEIGHT,
-    OpenWeatherLogo2, OPENWEATHER_LOGO2_WIDTH, OPENWEATHER_LOGO2_HEIGHT
-  ));
-#else // (SPLASH_LOGO_TYPE == SPLASH_LOGO_INDEX)
   GFX(drawIndexedBitmap(
     X, Y,
     const_cast<uint8_t  *>(OpenWeatherLogo1_IndexedImage),  // Indexed Image
@@ -150,7 +175,6 @@ void gfxDrawSplashImage(void) {
     const_cast<uint16_t *>(OpenWeatherLogo2_ColorPalette),  // Color Palette
     OPENWEATHER_LOGO2_WIDTH, OPENWEATHER_LOGO2_HEIGHT       // Width, Height
   ));
-#endif
 }
 
 //-------------------------------------------------------------------------------------

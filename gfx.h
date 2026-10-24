@@ -6,43 +6,6 @@
 #include "config.h"
 #include "OpenWeather.h"
 
-// TFT screen size
-#define TFT_WIDTH     (TFT_ROTATION & 1 ? 320 : 240)
-#define TFT_HEIGHT    (TFT_ROTATION & 1 ? 240 : 320)
-
-// Color definitions
-#define TFT_BLACK     RGB565(  0,   0,   0) // 0x0000
-#define TFT_BLUE      RGB565(  0,   0, 255) // 0x001F
-#define TFT_RED       RGB565(255,   0,   0) // 0xF800
-#define TFT_GREEN     RGB565(  0, 255,   0) // 0x07E0
-#define TFT_CYAN      RGB565(  0, 255, 255) // 0x07FF
-#define TFT_MAGENTA   RGB565(255,   0, 255) // 0xF81F
-#define TFT_YELLOW    RGB565(255, 255,   0) // 0xFFE0
-#define TFT_WHITE     RGB565(255, 255, 255) // 0xFFFF
-#define TFT_ORANGE    RGB565(255, 180,   0) // 0xFDA0
-#define TFT_LIGHTGREY RGB565(211, 211, 211) // 0xD69A
-
-// Splash logo
-#define SPLASH_LOGO_RGB565  0
-#define SPLASH_LOGO_INDEX   1
-#define SPLASH_LOGO_TYPE    SPLASH_LOGO_INDEX
-
-// Weather icon
-#define WEATHER_ICON_MONO   0
-#define WEATHER_ICON_COLOR  1
-#define WEATHER_ICON_TYPE   WEATHER_ICON_COLOR
-
-#if (WEATHER_ICON_TYPE == WEATHER_ICON_COLOR)
-  typedef struct {
-    uint16_t    color;
-    const char  code;
-    bool        next;
-  } IconOverlay;
-  static const IconOverlay *getWeatherIcon(uint16_t weather_id, bool day);
-#else
-  static const char *getWeatherIcon(uint16_t weather_id, bool day);
-#endif
-
 // Public
 void gfxInit(void);
 void gfxDrawSplashImage(void);
